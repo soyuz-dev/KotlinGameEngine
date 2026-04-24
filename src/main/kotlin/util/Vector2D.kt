@@ -12,7 +12,10 @@ data class Vector2D(val x: Double, val y: Double) {
         val UNIT_X = Vector2D(1.0, 0.0)
         val UNIT_Y = Vector2D(0.0, 1.0)
 
-        const val EPSILON = 1e-10
+        const val EPSILON_ZERO = 1e-8      // for "is this basically zero?"
+        const val EPSILON_COMPARE = 1e-6   // for equality checks
+        const val EPSILON_NORMALIZE = 1e-12 // for avoiding divide-by-zero
+
     }
 
     // Basic arithmetic
@@ -29,7 +32,7 @@ data class Vector2D(val x: Double, val y: Double) {
         Vector2D(x * scalar, y * scalar)
 
     operator fun div(scalar: Double): Vector2D =
-        if (scalar != 0.0) {
+        if (abs(scalar) > EPSILON_NORMALIZE) {
             Vector2D(x / scalar, y / scalar)
         } else {
             println("Division by zero detected. Did you intend scalar to be zero?")
@@ -45,7 +48,7 @@ data class Vector2D(val x: Double, val y: Double) {
 
     fun normalize(): Vector2D {
         val len = length()
-        if (len < EPSILON) return ZERO
+        if (len < EPSILON_NORMALIZE) return ZERO
         val invLen = 1.0 / len
         return Vector2D(x * invLen, y * invLen)
     }
@@ -105,27 +108,15 @@ data class Vector2D(val x: Double, val y: Double) {
     }
 
     fun isZero(): Boolean =
-        abs(x) < EPSILON && abs(y) < EPSILON
+        abs(x) < EPSILON_ZERO && abs(y) < EPSILON_ZERO
 
-    // Epsilon-based equality (IMPORTANT: overrides data-class default)
-    fun equalsEpsilon(other: Vector2D): Boolean {
+    fun isCloseTo(other: Vector2D): Boolean {
         if (this === other) return true
 
-        return abs(x - other.x) < EPSILON &&
-                abs(y - other.y) < EPSILON
+        return abs(x - other.x) < EPSILON_COMPARE &&
+                abs(y - other.y) < EPSILON_COMPARE
     }
 
-    override fun hashCode(): Int {
-        val xBits = java.lang.Double.doubleToLongBits(
-            if (abs(x) < EPSILON) 0.0 else x
-        )
-        val yBits = java.lang.Double.doubleToLongBits(
-            if (abs(y) < EPSILON) 0.0 else y
-        )
-
-        return (xBits xor (xBits ushr 32) xor
-                yBits xor (yBits ushr 32)).toInt()
-    }
 
     override fun toString(): String =
         "Vector2D[$x, $y]"
