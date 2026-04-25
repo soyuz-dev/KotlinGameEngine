@@ -1,19 +1,13 @@
 package org.soyuz.engine.scene
 
 import org.soyuz.engine.entity.GameEntity
-import org.soyuz.engine.entity.InputAwareGameEntity
-import org.soyuz.input.Input
 
 open class RuntimeScene(
     final override val id: String
 ) : Scene {
     private val entities: LinkedHashMap<String, GameEntity> = linkedMapOf()
-    private val input = Input()
 
     final override fun addEntity(entity: GameEntity) {
-        if (entity is InputAwareGameEntity) {
-            entity.bindInput(input)
-        }
         entities[entity.id] = entity
     }
 

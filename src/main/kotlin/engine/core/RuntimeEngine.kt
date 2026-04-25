@@ -23,12 +23,8 @@ class RuntimeEngine(
             return
         }
 
-        val previousScene = currentScene
-        if (previousScene != null) {
-            previousScene.cleanup()
-            if (initializedScene === previousScene) {
-                initializedScene = null
-            }
+        currentScene?.let { previousScene ->
+            cleanupIfInitialized(previousScene)
         }
 
         currentScene = scene
@@ -58,6 +54,9 @@ class RuntimeEngine(
 
         running = false
         accumulator = 0f
+        currentScene?.let { scene ->
+            cleanupIfInitialized(scene)
+        }
     }
 
     override fun tick(dt: Float) {
@@ -89,6 +88,15 @@ class RuntimeEngine(
 
         scene.init()
         initializedScene = scene
+    }
+
+    private fun cleanupIfInitialized(scene: Scene) {
+        if (initializedScene !== scene) {
+            return
+        }
+
+        scene.cleanup()
+        initializedScene = null
     }
 
     companion object {
