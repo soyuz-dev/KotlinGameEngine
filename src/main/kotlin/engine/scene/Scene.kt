@@ -13,5 +13,11 @@ interface Scene {
 
     fun allEntities(): List<GameEntity>
 
-    fun update(dt: Float)
+    fun init()
+
+    fun fixedUpdate(dt: Float)
+
+    fun render(delta: Float, alpha: Float)
+
+    fun cleanup()
 }
