@@ -15,6 +15,7 @@ class RuntimeEngine(
 
     private var running: Boolean = false
     private var currentScene: Scene? = null
+    private var initializedScene: Scene? = null
     private var accumulator: Float = 0f
 
     override fun loadScene(scene: Scene) {
@@ -22,12 +23,19 @@ class RuntimeEngine(
             return
         }
 
-        currentScene?.cleanup()
+        val previousScene = currentScene
+        if (previousScene != null) {
+            previousScene.cleanup()
+            if (initializedScene === previousScene) {
+                initializedScene = null
+            }
+        }
+
         currentScene = scene
         accumulator = 0f
 
         if (running) {
-            scene.init()
+            ensureSceneInitialized(scene)
         }
     }
 
@@ -38,7 +46,9 @@ class RuntimeEngine(
 
         running = true
         accumulator = 0f
-        currentScene?.init()
+        currentScene?.let { scene ->
+            ensureSceneInitialized(scene)
+        }
     }
 
     override fun stop() {
@@ -56,6 +66,10 @@ class RuntimeEngine(
         }
 
         val scene = currentScene ?: return
+        if (!dt.isFinite() || dt < 0f) {
+            return
+        }
+
         val frameDelta = dt.coerceIn(0f, maxFrameDelta)
 
         accumulator += frameDelta
@@ -66,6 +80,15 @@ class RuntimeEngine(
 
         val alpha = (accumulator / fixedTimeStep).coerceIn(0f, 1f)
         scene.render(frameDelta, alpha)
+    }
+
+    private fun ensureSceneInitialized(scene: Scene) {
+        if (initializedScene === scene) {
+            return
+        }
+
+        scene.init()
+        initializedScene = scene
     }
 
     companion object {
