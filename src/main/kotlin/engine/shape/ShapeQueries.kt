@@ -13,18 +13,11 @@ import kotlin.math.sqrt
  * This keeps shapes runtime-agnostic and ensures broadphase queries can go through one path.
  */
 object ShapeQueries {
-    data class Aabb(
-        val min: Vector2D,
-        val max: Vector2D
-    ) {
-        fun contains(point: Vector2D): Boolean =
-            point.x in min.x..max.x && point.y in min.y..max.y
-    }
 
     /**
-     * Builds world-space AABB by projecting local bounds through [transform].
+     * Builds a world-space AABB by projecting local bounds through [transform].
      */
-    fun worldAabb(shape: Shape2D, transform: Transform): Aabb =
+    fun worldAabb(shape: Shape2D, transform: Transform): Aabb2D =
         when (shape) {
             is CircleShape -> worldAabbForCircle(shape, transform)
             is RectangleShape -> worldAabbForRectangle(shape, transform)
@@ -46,7 +39,7 @@ object ShapeQueries {
         }
     }
 
-    private fun worldAabbForCircle(shape: CircleShape, transform: Transform): Aabb {
+    private fun worldAabbForCircle(shape: CircleShape, transform: Transform): Aabb2D {
         val center = transform.position
         val radius = shape.radius.toDouble()
 
@@ -60,13 +53,15 @@ object ShapeQueries {
         val extentX = sqrt((scaledX * c) * (scaledX * c) + (scaledY * s) * (scaledY * s))
         val extentY = sqrt((scaledX * s) * (scaledX * s) + (scaledY * c) * (scaledY * c))
 
-        return Aabb(
-            min = Vector2D(center.x - extentX, center.y - extentY),
-            max = Vector2D(center.x + extentX, center.y + extentY)
+        return Aabb2D(
+            minX = (center.x - extentX).toFloat(),
+            minY = (center.y - extentY).toFloat(),
+            maxX = (center.x + extentX).toFloat(),
+            maxY = (center.y + extentY).toFloat()
         )
     }
 
-    private fun worldAabbForRectangle(shape: RectangleShape, transform: Transform): Aabb {
+    private fun worldAabbForRectangle(shape: RectangleShape, transform: Transform): Aabb2D {
         val halfWidth = shape.width * 0.5
         val halfHeight = shape.height * 0.5
 
@@ -84,9 +79,11 @@ object ShapeQueries {
         val maxX = worldCorners.maxOf { it.x }
         val maxY = worldCorners.maxOf { it.y }
 
-        return Aabb(
-            min = Vector2D(minX, minY),
-            max = Vector2D(maxX, maxY)
+        return Aabb2D(
+            minX = minX.toFloat(),
+            minY = minY.toFloat(),
+            maxX = maxX.toFloat(),
+            maxY = maxY.toFloat()
         )
     }
 
