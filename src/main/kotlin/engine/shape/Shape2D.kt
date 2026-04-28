@@ -18,6 +18,10 @@ data class CircleShape(
     )
 
     override fun supportRadius(): Float = radius
+    init {
+        require(radius.isFinite()) { "CircleShape radius must be finite (not NaN or Infinity): $radius" }
+        require(radius > 0f) { "CircleShape radius must be > 0: $radius" }
+    }
 }
 
 data class RectangleShape(
@@ -39,5 +43,10 @@ data class RectangleShape(
         val halfWidth = width * 0.5f
         val halfHeight = height * 0.5f
         return sqrt(halfWidth * halfWidth + halfHeight * halfHeight)
+    init {
+        require(width.isFinite()) { "RectangleShape width must be finite (not NaN or Infinity): $width" }
+        require(height.isFinite()) { "RectangleShape height must be finite (not NaN or Infinity): $height" }
+        require(width > 0f) { "RectangleShape width must be > 0: $width" }
+        require(height > 0f) { "RectangleShape height must be > 0: $height" }
     }
 }
