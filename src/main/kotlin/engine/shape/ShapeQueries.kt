@@ -65,19 +65,30 @@ object ShapeQueries {
         val halfWidth = shape.width * 0.5
         val halfHeight = shape.height * 0.5
 
-        val corners = listOf(
-            Vector2D(-halfWidth, -halfHeight),
-            Vector2D(halfWidth, -halfHeight),
-            Vector2D(halfWidth, halfHeight),
-            Vector2D(-halfWidth, halfHeight)
-        )
+        val corner0 = localToWorld(Vector2D(-halfWidth, -halfHeight), transform)
+        val corner1 = localToWorld(Vector2D(halfWidth, -halfHeight), transform)
+        val corner2 = localToWorld(Vector2D(halfWidth, halfHeight), transform)
+        val corner3 = localToWorld(Vector2D(-halfWidth, halfHeight), transform)
 
-        val worldCorners = corners.map { localToWorld(it, transform) }
+        var minX = corner0.x
+        var minY = corner0.y
+        var maxX = corner0.x
+        var maxY = corner0.y
 
-        val minX = worldCorners.minOf { it.x }
-        val minY = worldCorners.minOf { it.y }
-        val maxX = worldCorners.maxOf { it.x }
-        val maxY = worldCorners.maxOf { it.y }
+        if (corner1.x < minX) minX = corner1.x
+        if (corner1.y < minY) minY = corner1.y
+        if (corner1.x > maxX) maxX = corner1.x
+        if (corner1.y > maxY) maxY = corner1.y
+
+        if (corner2.x < minX) minX = corner2.x
+        if (corner2.y < minY) minY = corner2.y
+        if (corner2.x > maxX) maxX = corner2.x
+        if (corner2.y > maxY) maxY = corner2.y
+
+        if (corner3.x < minX) minX = corner3.x
+        if (corner3.y < minY) minY = corner3.y
+        if (corner3.x > maxX) maxX = corner3.x
+        if (corner3.y > maxY) maxY = corner3.y
 
         return Aabb2D(
             minX = minX.toFloat(),
