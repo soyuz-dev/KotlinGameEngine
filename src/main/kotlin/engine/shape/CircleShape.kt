@@ -1,7 +1,7 @@
 package org.soyuz.engine.shape
 
 data class CircleShape(
-    val radius: Float
+    val radius: Double
 ) : Shape2D {
 
     init {
@@ -16,5 +16,5 @@ data class CircleShape(
         maxY = radius
     )
 
-    override fun supportRadius(): Float = radius
+    override fun supportRadius(): Double = radius
 }

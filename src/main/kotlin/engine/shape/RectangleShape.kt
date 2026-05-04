@@ -3,8 +3,8 @@ package org.soyuz.engine.shape
 import kotlin.math.sqrt
 
 data class RectangleShape(
-    val width: Float,
-    val height: Float
+    val width: Double,
+    val height: Double
 ) : Shape2D {
 
     init {
@@ -15,8 +15,8 @@ data class RectangleShape(
     }
 
     override fun localAabb(): Aabb2D {
-        val halfWidth = width * 0.5f
-        val halfHeight = height * 0.5f
+        val halfWidth = width * 0.5
+        val halfHeight = height * 0.5
         return Aabb2D(
             minX = -halfWidth,
             minY = -halfHeight,
@@ -25,7 +25,7 @@ data class RectangleShape(
         )
     }
 
-    override fun supportRadius(): Float {
+    override fun supportRadius(): Double {
         val halfWidth = width * 0.5f
         val halfHeight = height * 0.5f
         return sqrt(halfWidth * halfWidth + halfHeight * halfHeight)
