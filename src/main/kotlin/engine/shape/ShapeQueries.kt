@@ -13,7 +13,6 @@ import kotlin.math.sqrt
  * This keeps shapes runtime-agnostic and ensures broadphase queries can go through one path.
  */
 object ShapeQueries {
-
     /**
      * Builds a world-space AABB by projecting local bounds through [transform].
      */
@@ -22,13 +21,11 @@ object ShapeQueries {
             is CircleShape -> worldAabbForCircle(shape, transform)
             is RectangleShape -> worldAabbForRectangle(shape, transform)
         }
-
     /**
      * Tests a world-space [point] against a local [shape] projected by [transform].
      */
     fun containsPoint(shape: Shape2D, transform: Transform, point: Vector2D): Boolean {
         val localPoint = worldToLocal(point, transform) ?: return false
-
         return when (shape) {
             is CircleShape -> localPoint.lengthSquared() <= shape.radius.toDouble() * shape.radius
             is RectangleShape -> {
@@ -38,11 +35,9 @@ object ShapeQueries {
             }
         }
     }
-
     private fun worldAabbForCircle(shape: CircleShape, transform: Transform): Aabb2D {
         val center = transform.position
         val radius = shape.radius.toDouble()
-
         val scaledX = radius * abs(transform.scale.x)
         val scaledY = radius * abs(transform.scale.y)
 
@@ -64,7 +59,6 @@ object ShapeQueries {
     private fun worldAabbForRectangle(shape: RectangleShape, transform: Transform): Aabb2D {
         val halfWidth = shape.width * 0.5
         val halfHeight = shape.height * 0.5
-
         val corner0 = localToWorld(Vector2D(-halfWidth, -halfHeight), transform)
         val corner1 = localToWorld(Vector2D(halfWidth, -halfHeight), transform)
         val corner2 = localToWorld(Vector2D(halfWidth, halfHeight), transform)
