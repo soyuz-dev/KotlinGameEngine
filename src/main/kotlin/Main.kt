@@ -1,5 +1,6 @@
 package org.soyuz
 
-fun main(){
+fun main() {
     println("Hello World")
+
 }
