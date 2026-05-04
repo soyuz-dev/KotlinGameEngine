@@ -2,6 +2,8 @@ package org.soyuz.engine.entity
 
 import org.soyuz.util.Vector2D
 
+
+//screw floats
 data class Transform(
     val position: Vector2D = Vector2D.ZERO,
     val rotationRadians: Double = 0.0,
