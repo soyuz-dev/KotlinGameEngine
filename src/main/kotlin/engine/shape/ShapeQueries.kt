@@ -54,10 +54,10 @@ object ShapeQueries {
         val extentY = sqrt((scaledX * s) * (scaledX * s) + (scaledY * c) * (scaledY * c))
 
         return Aabb2D(
-            minX = (center.x - extentX).toFloat(),
-            minY = (center.y - extentY).toFloat(),
-            maxX = (center.x + extentX).toFloat(),
-            maxY = (center.y + extentY).toFloat()
+            minX = (center.x - extentX),
+            minY = (center.y - extentY),
+            maxX = (center.x + extentX),
+            maxY = (center.y + extentY)
         )
     }
 
@@ -91,10 +91,10 @@ object ShapeQueries {
         if (corner3.y > maxY) maxY = corner3.y
 
         return Aabb2D(
-            minX = minX.toFloat(),
-            minY = minY.toFloat(),
-            maxX = maxX.toFloat(),
-            maxY = maxY.toFloat()
+            minX = minX,
+            minY = minY,
+            maxX = maxX,
+            maxY = maxY
         )
     }
 
