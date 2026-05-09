@@ -48,7 +48,7 @@ class PointMass(
      */
     // Phase 1: Compute acceleration from accumulated forces,
     //          then return displacement for position update
-    fun integratePosition(dt: Double): Vector2D {
+    override fun integratePosition(dt: Double): Vector2D {
         if (dt <= 0.0) {
             forceAccum = Vector2D.ZERO
             return Vector2D.ZERO
@@ -63,7 +63,7 @@ class PointMass(
     }
     // Phase 2: Update velocity using average of previous and new acceleration.
     // Call this AFTER position is updated and any collision impulses are resolved.
-    fun integrateVelocity(dt: Double, newAcceleration: Vector2D? = null) {
+    override fun integrateVelocity(dt: Double, newAcceleration: Vector2D?) {
         if ( inverseMass == 0.0 ||dt <= 0.0) return
         // If no new acceleration provided (e.g., no collision-derived forces),
         // assume it's the same as previous (constant force approximation)

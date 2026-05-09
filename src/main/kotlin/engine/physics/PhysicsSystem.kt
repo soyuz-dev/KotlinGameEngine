@@ -7,5 +7,5 @@ interface PhysicsSystem {
 
     fun unregisterBody(entityId: String)
 
-    fun step(scene: Scene, dt: Float)
+    fun step(scene: Scene, dt: Double)
 }
