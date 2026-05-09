@@ -5,6 +5,8 @@ import org.soyuz.engine.shape.Shape2D
 interface GameEntity {
     val id: String
 
+    var transform: Transform
+
     var shape: Shape2D?
 
     fun onUpdate(callback: (dt: Float) -> Unit)

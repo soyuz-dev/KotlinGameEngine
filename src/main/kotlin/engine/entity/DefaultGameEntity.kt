@@ -5,9 +5,10 @@ import org.soyuz.engine.shape.Shape2D
 typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 
 class DefaultGameEntity(
-    final override val id: String,
-    final override var shape: Shape2D? = null
-) : GameEntity, InputAwareGameEntity {
+    override val id: String,
+    override var transform: Transform = Transform(),
+    override var shape: Shape2D? = null
+) : GameEntity {
     private val updateCallbacks = mutableListOf<GameEntityUpdateCallback>()
     private val collisionCallbacks = mutableListOf<(other: GameEntity) -> Unit>()
 
