@@ -1,9 +1,8 @@
 package org.soyuz.engine.entity
 
 import org.soyuz.engine.shape.Shape2D
-import org.soyuz.input.Input
 
-typealias GameEntityUpdateCallback = (entity: GameEntity, input: Input, dt: Float) -> Unit
+typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 
 class DefaultGameEntity(
     final override val id: String,
@@ -12,10 +11,9 @@ class DefaultGameEntity(
     private val updateCallbacks = mutableListOf<GameEntityUpdateCallback>()
     private val collisionCallbacks = mutableListOf<(other: GameEntity) -> Unit>()
 
-    private var input: Input = Input()
 
     override fun onUpdate(callback: (dt: Float) -> Unit) {
-        updateCallbacks.add { _, _, dt -> callback(dt) }
+        updateCallbacks.add { _, dt -> callback(dt) }
     }
 
     fun onUpdate(callback: GameEntityUpdateCallback) {
@@ -28,7 +26,7 @@ class DefaultGameEntity(
 
     override fun update(dt: Float) {
         updateCallbacks.forEach { callback ->
-            callback(this, input, dt)
+            callback(this, dt)
         }
     }
 
@@ -38,7 +36,4 @@ class DefaultGameEntity(
         }
     }
 
-    override fun bindInput(input: Input) {
-        this.input = input
-    }
 }

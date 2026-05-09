@@ -8,12 +8,12 @@ import org.soyuz.util.Vector2D
  * The coordinate space is conveyed by API naming (for example, `localAabb` or `worldAabb`).
  */
 data class Aabb2D(
-    val minX: Float,
-    val minY: Float,
-    val maxX: Float,
-    val maxY: Float
+    val minX: Double,
+    val minY: Double,
+    val maxX: Double,
+    val maxY: Double
 ) {
     fun contains(point: Vector2D): Boolean =
-        point.x in minX.toDouble()..maxX.toDouble() &&
-            point.y in minY.toDouble()..maxY.toDouble()
+        point.x in minX..maxX &&
+            point.y in minY..maxY
 }

@@ -2,7 +2,7 @@ package org.soyuz.input
 
 import org.soyuz.util.Vector2D
 
-class Input {
+object Input {
 
     // --- Keyboard ---
     fun isKeyDown(key: Int) = KeyListener.isKeyDown(key)
