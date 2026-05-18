@@ -70,11 +70,11 @@ fun main() {
     val scene = RuntimeScene("main")
 
     val ball = DefaultGameEntity("ball")
-    ball.transform = ball.transform.copy(position = Vector2D(width / 2.0, 1000.0)) // top-center
+    ball.goto(position = Vector2D(width / 2.0, 1000.0)) // top-center
 
     val body = PointMass(mass = 1.0)
     body.addField(ConstantForceField(Vector2D(0.0, 500.0))) // gravity (screen-down)
-    body.velocity = Vector2D(200.0, -400.0) // initial toss up-right
+    body.velocity = Vector2D(250.0, -500.0) // initial toss up-right
 
     physicsSystem.registerBody(ball.id, body)
     scene.addEntity(ball)
@@ -97,18 +97,18 @@ fun main() {
         if (p.x < 0 || p.x > width) {
             body.velocity = Vector2D(-body.velocity.x, body.velocity.y)
 
-            ball.transform = ball.transform.copy(position = Vector2D(
+            ball.goto(Vector2D(
                 p.x.coerceIn(0.0, width.toDouble()),
                 p.y
             ))
         }
         if (p.y > height) {
             body.velocity = Vector2D(body.velocity.x, -body.velocity.y)
-            ball.transform = ball.transform.copy(position = Vector2D(p.x, height.toDouble()))
+            ball.goto(Vector2D(p.x, height.toDouble()))
         }
         if (p.y < 0) {
             body.velocity = Vector2D(body.velocity.x, -body.velocity.y)
-            ball.transform = ball.transform.copy(position = Vector2D(p.x, 0.0))
+            ball.goto(position = Vector2D(p.x, 0.0))
         }
 
         // Render

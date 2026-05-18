@@ -1,6 +1,7 @@
 package org.soyuz.engine.entity
 
 import org.soyuz.engine.shape.Shape2D
+import org.soyuz.util.Vector2D
 
 typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 
@@ -37,4 +38,7 @@ class DefaultGameEntity(
         }
     }
 
+    fun goto(position: Vector2D) {
+        this.transform = this.transform.goto(position)
+    }
 }

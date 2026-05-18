@@ -27,6 +27,8 @@ data class Transform(
     fun scaled(factor: Vector2D): Transform =
         copy(scale = Vector2D(scale.x * factor.x, scale.y * factor.y))
 
+    fun goto(position: Vector2D): Transform =
+        copy(position = position)
 
 
 }
