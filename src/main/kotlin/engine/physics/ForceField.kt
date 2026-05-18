@@ -4,5 +4,9 @@ import org.soyuz.engine.entity.GameEntity
 import org.soyuz.util.Vector2D
 
 interface ForceField {
-    fun forceFor(entity: GameEntity): Vector2D
+    fun forceAt(position: Vector2D, velocity: Vector2D) : Vector2D
+}
+
+class ConstantForceField(private val force: Vector2D) : ForceField {
+    override fun forceAt(position: Vector2D, velocity: Vector2D) = force
 }

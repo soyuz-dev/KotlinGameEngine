@@ -28,5 +28,5 @@ data class Transform(
         copy(scale = Vector2D(scale.x * factor.x, scale.y * factor.y))
 
 
-    val Identity = Transform(Vector2D.ZERO, 0.0, Vector2D.ZERO)
+
 }

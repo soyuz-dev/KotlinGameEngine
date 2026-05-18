@@ -25,10 +25,23 @@ class PointMass(
     private var forceAccum: Vector2D = Vector2D.ZERO
     // Previous frame's acceleration (for Verlet)
     private var previousAcceleration: Vector2D = Vector2D.ZERO
+
+    private val forceFields = mutableListOf<ForceField>()
+
+    fun addField(field: ForceField) {
+        forceFields.add(field)
+    }
     override fun applyForce(force: Vector2D) {
         if (inverseMass == 0.0) return
         forceAccum += force
     }
+
+    fun accumulateForces(position: Vector2D) {
+        for (field in forceFields) {
+            applyForce(field.forceAt(position, velocity))
+        }
+    }
+
     fun applyImpulse(impulse: Vector2D) {
         velocity += impulse * inverseMass
     }
