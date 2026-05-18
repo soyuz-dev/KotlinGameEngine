@@ -38,10 +38,7 @@ class CircleCollider(
 
         // Account for scale (take the max component for circles; circles stay circular
         // unless non-uniform scale, but that's an edge case for advanced use)
-        val radiusA = shape.radius.toDouble() * maxOf(
-            kotlin.math.abs(selfTransform.scale.x),
-            kotlin.math.abs(selfTransform.scale.y)
-        )
+        val radiusA = worldRadius(transform = selfTransform)
         val radiusB = other.shape.radius.toDouble() * maxOf(
             kotlin.math.abs(otherTransform.scale.x),
             kotlin.math.abs(otherTransform.scale.y)
@@ -83,10 +80,7 @@ class CircleCollider(
         }
 
         val dist = sqrt(distSq)
-        val radiusA = shape.radius.toDouble() * maxOf(
-            kotlin.math.abs(selfTransform.scale.x),
-            kotlin.math.abs(selfTransform.scale.y)
-        )
+        val radiusA = worldRadius(transform = selfTransform)
 
         // Contact is on this circle's surface, pointing toward the other
         val nx = dx / dist
@@ -157,10 +151,7 @@ class CircleCollider(
         val dy = b.y - a.y
         val dist = sqrt(dx * dx + dy * dy)
 
-        val radiusA = shape.radius.toDouble() * maxOf(
-            kotlin.math.abs(selfTransform.scale.x),
-            kotlin.math.abs(selfTransform.scale.y)
-        )
+        val radiusA = worldRadius(selfTransform)
         val radiusB = other.shape.radius.toDouble() * maxOf(
             kotlin.math.abs(otherTransform.scale.x),
             kotlin.math.abs(otherTransform.scale.y)
@@ -189,5 +180,12 @@ class CircleCollider(
         } else {
             delta.normalize()
         }
+    }
+
+    private fun worldRadius(transform: Transform): Double {
+        return shape.radius * maxOf(
+            kotlin.math.abs(transform.scale.x),
+            kotlin.math.abs(transform.scale.y)
+        )
     }
 }
