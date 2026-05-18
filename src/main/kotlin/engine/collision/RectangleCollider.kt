@@ -2,6 +2,7 @@ package org.soyuz.engine.collision
 
 import org.soyuz.util.Transform
 import org.soyuz.engine.shape.RectangleShape
+import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
 import kotlin.math.cos
 import kotlin.math.sin
@@ -28,16 +29,13 @@ class RectangleCollider(
     fun closestPointTo(worldPoint: Vector2D, transform: Transform) : Vector2D {
         val local = Transform.worldToLocal(worldPoint, transform) ?: return transform.position
         val clamped = Vector2D(
-           clamp(local.x, -shape.width/2, shape.width/2),
-            clamp(local.y, -shape.height/2, shape.height/2)
+            MathUtil.clamp(local.x, -shape.width/2, shape.width/2),
+            MathUtil.clamp(local.y, -shape.height/2, shape.height/2)
         )
         return Transform.localToWorld(clamped, transform)
     }
 
 
-    fun clamp(toClamp:Double, min: Double, max: Double) : Double {
-        return if (toClamp > max) max else if (toClamp < min) min else toClamp
-    }
 
     private fun worldCorners(transform: Transform): List<Vector2D> {
         val halfW = shape.width * 0.5
