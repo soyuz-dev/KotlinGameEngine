@@ -1,6 +1,7 @@
 package org.soyuz.engine.entity
 
 import org.soyuz.engine.shape.Shape2D
+import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
 
 typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit

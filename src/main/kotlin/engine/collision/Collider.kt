@@ -1,6 +1,6 @@
 package org.soyuz.engine.collision
 
-import org.soyuz.engine.entity.Transform
+import org.soyuz.util.Transform
 
 interface Collider {
     val isTrigger: Boolean

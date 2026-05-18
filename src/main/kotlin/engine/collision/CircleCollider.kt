@@ -1,6 +1,6 @@
 package org.soyuz.engine.collision
 
-import org.soyuz.engine.entity.Transform
+import org.soyuz.util.Transform
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.util.Debug
 import org.soyuz.util.Vector2D
@@ -182,7 +182,7 @@ class CircleCollider(
         }
     }
 
-    private fun worldRadius(transform: Transform): Double {
+    fun worldRadius(transform: Transform): Double {
         return shape.radius * maxOf(
             kotlin.math.abs(transform.scale.x),
             kotlin.math.abs(transform.scale.y)

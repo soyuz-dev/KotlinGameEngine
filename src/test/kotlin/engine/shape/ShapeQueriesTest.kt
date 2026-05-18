@@ -1,6 +1,7 @@
 package org.soyuz.engine.shape
 
-import org.soyuz.engine.entity.Transform
+import org.soyuz.util.Transform
+import org.soyuz.util.ShapeQueries
 import org.soyuz.util.Vector2D
 import kotlin.math.PI
 import kotlin.test.Test

@@ -1,6 +1,7 @@
 package org.soyuz.engine.entity
 
 import org.soyuz.engine.shape.Shape2D
+import org.soyuz.util.Transform
 
 interface GameEntity {
     val id: String

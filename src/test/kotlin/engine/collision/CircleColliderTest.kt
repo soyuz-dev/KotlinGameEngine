@@ -1,6 +1,6 @@
 package org.soyuz.engine.collision
 
-import org.soyuz.engine.entity.Transform
+import org.soyuz.util.Transform
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.util.Vector2D
 import kotlin.math.sqrt

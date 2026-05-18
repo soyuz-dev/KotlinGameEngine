@@ -1,7 +1,6 @@
-package org.soyuz.engine.entity
+package org.soyuz.util
 
-import org.soyuz.util.Vector2D
-
+import kotlin.math.abs
 
 //screw floats
 data class Transform(
@@ -30,5 +29,23 @@ data class Transform(
     fun goto(position: Vector2D): Transform =
         copy(position = position)
 
+    companion object {
+        fun localToWorld(local: Vector2D, transform: Transform): Vector2D {
+            val scaled = Vector2D(local.x * transform.scale.x, local.y * transform.scale.y)
+            val rotated = scaled.rotate(transform.rotationRadians)
+            return rotated + transform.position
+        }
 
+        fun worldToLocal(world: Vector2D, transform: Transform): Vector2D? {
+            if (abs(transform.scale.x) < Vector2D.EPSILON_NORMALIZE ||
+                abs(transform.scale.y) < Vector2D.EPSILON_NORMALIZE
+            ) {
+                return null
+            }
+
+            val translated = world - transform.position
+            val unrotated = translated.rotate(-transform.rotationRadians)
+            return Vector2D(unrotated.x / transform.scale.x, unrotated.y / transform.scale.y)
+        }
+    }
 }
