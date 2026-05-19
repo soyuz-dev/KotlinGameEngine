@@ -1,7 +1,7 @@
 
 # Bump
 
-A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow where entities own their data directly — no ECS, no ceremony.
+A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow where entities own their data directly with less ECS-related bloat.
 
 ## Status
 
