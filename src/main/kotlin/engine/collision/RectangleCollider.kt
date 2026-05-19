@@ -48,16 +48,6 @@ class RectangleCollider(
         )
     }
 
-    private fun project(corners: List<Vector2D>, axis: Vector2D): Pair<Double, Double> {
-        var min = Double.MAX_VALUE
-        var max = -Double.MAX_VALUE
-        for (corner in corners) {
-            val projection = corner.dot(axis)
-            if (projection < min) min = projection
-            if (projection > max) max = projection
-        }
-        return   min to max
-    }
 
     fun satForRectangle(other: RectangleCollider, selfTransform: Transform, otherTransform: Transform) : Boolean {
         val c1 = cos(selfTransform.rotationRadians)
@@ -82,8 +72,8 @@ class RectangleCollider(
         val axes = listOf(selfAxisX, selfAxisY, otherAxisX, otherAxisY)
 
         for (axis in axes) {
-            val (minA, maxA) = project(selfCorners, axis)
-            val (minB, maxB) = project(otherCorners, axis)
+            val (minA, maxA) = MathUtil.project(selfCorners, axis)
+            val (minB, maxB) = MathUtil.project(otherCorners, axis)
             val overlap = minOf(maxA, maxB) - maxOf(minA, minB)
             println("axis: $axis, minA=$minA, maxA=$maxA, minB=$minB, maxB=$maxB, overlap=$overlap")
             if (overlap <= 0) return false // separated on this axis
