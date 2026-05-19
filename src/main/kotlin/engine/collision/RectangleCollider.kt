@@ -37,7 +37,7 @@ class RectangleCollider(
 
 
 
-    private fun worldCorners(transform: Transform): List<Vector2D> {
+    fun worldCorners(transform: Transform): List<Vector2D> {
         val halfW = shape.width * 0.5
         val halfH = shape.height * 0.5
         return listOf(
@@ -63,24 +63,29 @@ class RectangleCollider(
         val c1 = cos(selfTransform.rotationRadians)
         val s1 = sin(selfTransform.rotationRadians)
 
-        val selfAxisX = Vector2D(c1, s1)        // (1,0) rotated
-        val selfAxisY = Vector2D(-s1, c1)       // (0,1) rotated
 
         val c2 = cos(otherTransform.rotationRadians)
         val s2 = sin(otherTransform.rotationRadians)
 
-        val otherAxisX = Vector2D(c2, s2)
-        val otherAxisY = Vector2D(-s2, c2)
 
-        val axes = listOf(selfAxisX, selfAxisY, otherAxisX, otherAxisY)
+
 
         val selfCorners = worldCorners(selfTransform)
-        val otherCorners = worldCorners(otherTransform)
+        val otherCorners = other.worldCorners(otherTransform)
+
+        val selfAxisX = (selfCorners[1] - selfCorners[0]).normalized()
+        val selfAxisY = (selfCorners[3] - selfCorners[0]).normalized()
+
+        val otherAxisX = (otherCorners[1] - otherCorners[0]).normalized()
+        val otherAxisY = (otherCorners[3] - otherCorners[0]).normalized()
+
+        val axes = listOf(selfAxisX, selfAxisY, otherAxisX, otherAxisY)
 
         for (axis in axes) {
             val (minA, maxA) = project(selfCorners, axis)
             val (minB, maxB) = project(otherCorners, axis)
             val overlap = minOf(maxA, maxB) - maxOf(minA, minB)
+            println("axis: $axis, minA=$minA, maxA=$maxA, minB=$minB, maxB=$maxB, overlap=$overlap")
             if (overlap <= 0) return false // separated on this axis
         }
         return true
