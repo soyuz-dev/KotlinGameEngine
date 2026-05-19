@@ -46,7 +46,7 @@ data class Vector2D(val x: Double, val y: Double) {
     fun lengthSquared(): Double =
         x * x + y * y
 
-    fun normalize(): Vector2D {
+    fun normalized(): Vector2D {
         val len = length()
         if (len < EPSILON_NORMALIZE) return ZERO
         val invLen = 1.0 / len
@@ -76,7 +76,7 @@ data class Vector2D(val x: Double, val y: Double) {
 
     // Projection and reflection
     fun project(onto: Vector2D): Vector2D {
-        val norm = onto.normalize()
+        val norm = onto.normalized()
         return norm * (dot(norm))
     }
 
@@ -102,7 +102,7 @@ data class Vector2D(val x: Double, val y: Double) {
     fun clamp(maxLength: Double): Vector2D {
         val lenSq = lengthSquared()
         if (lenSq > maxLength * maxLength) {
-            return normalize() * maxLength
+            return normalized() * maxLength
         }
         return this
     }

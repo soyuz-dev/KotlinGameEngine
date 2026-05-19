@@ -178,7 +178,7 @@ class CircleCollider(
         return if (delta.isZero()) {
             Vector2D.UNIT_X // Arbitrary direction for overlapping centers
         } else {
-            delta.normalize()
+            delta.normalized()
         }
     }
 
