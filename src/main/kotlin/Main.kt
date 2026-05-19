@@ -85,8 +85,11 @@ fun main() {
     while (!glfwWindowShouldClose(window)) {
         val pos = MouseListener.getPos()
         val currentTime = glfwGetTime()
-        val dt = currentTime - lastTime
+        val rawDt = currentTime - lastTime
         lastTime = currentTime
+
+        val dt = minOf(rawDt, 0.1)
+
         glfwSetWindowTitle(window, "Bump | Mouse: (${"%.0f".format(pos.x)}, ${"%.0f".format(pos.y)}) | fps: ${"%.0f".format(1.0 / dt)}")
 
         // Physics step
