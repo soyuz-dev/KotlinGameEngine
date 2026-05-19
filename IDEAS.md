@@ -40,6 +40,10 @@ Click anywhere → spawn a new entity at cursor position with a random initial v
 ### Gravity wells
 Click and hold → create a temporary `PointGravityField` that attracts nearby entities. Release to let them fly.
 
+### Charge fields
+
+Attraction/repulsion with `ChargedGameEntity` objects.
+
 ### Entity templates
 Pre-configured entity blueprints (bouncy ball, heavy box, static wall) that the DSL can reference by name.
 
