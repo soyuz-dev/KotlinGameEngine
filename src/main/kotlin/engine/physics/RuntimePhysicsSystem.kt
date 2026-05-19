@@ -35,7 +35,9 @@ class RuntimePhysicsSystem : PhysicsSystem {
             entity.transform = entity.transform.translated(displacement)
         }
 
-        // Phase 2: Collision detection & resolution TODO
+        // Phase 2: Collision detection & resolution
+
+
 
         // Phase 3: Velocity update
         for ((entityId, body) in bodies) {

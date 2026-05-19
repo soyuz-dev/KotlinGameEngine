@@ -7,5 +7,5 @@ interface CollisionSystem {
 
     fun unregisterCollider(entityId: String)
 
-    fun detect(scene: Scene)
+    fun detect(scene: Scene) : List<Contact>
 }
