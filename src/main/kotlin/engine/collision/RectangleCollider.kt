@@ -56,7 +56,7 @@ class RectangleCollider(
             if (projection < min) min = projection
             if (projection > max) max = projection
         }
-        return min to max
+        return   min to max
     }
 
     fun satForRectangle(other: RectangleCollider, selfTransform: Transform, otherTransform: Transform) : Boolean {

@@ -8,6 +8,8 @@ class RuntimeCollisionSystem : CollisionSystem {
     private val colliders = mutableMapOf<String, Collider>()
 
     override fun registerCollider(entityId: String, collider: Collider) {
+        require(entityId !in colliders) {"Entity '${entityId}' already has a registered collider."}
+        require(colliders.values.none {it === collider}) {"Collider already registered to another entity. Create a new collider instead."}
         colliders[entityId] = collider
     }
 
