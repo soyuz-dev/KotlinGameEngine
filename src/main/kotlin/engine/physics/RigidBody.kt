@@ -13,7 +13,10 @@ class RigidBody(
     // Delegate linear physics to PointMass
     override var mass: Double
         get() = pointMass.mass
-        set(value) { pointMass.mass = value }
+        set(value) {
+            pointMass.mass = value
+            inverseInertia = 1/value
+        }
 
     override var velocity: Vector2D
         get() = pointMass.velocity
@@ -32,14 +35,10 @@ class RigidBody(
 
 
     override fun applyImpulse(impulse: Vector2D, contactPoint: Vector2D) {
-        // Linear
         pointMass.applyImpulse(impulse)
 
-
-        // Angular: τ = r × F
-        // contactPoint is in world space — need offset from center of mass
-        // r will be computed by PhysicsSystem since we don't store position here
-        // This method needs the center-of-mass position passed in, or r passed directly
+        val angularImpulse = contactPoint.cross(impulse)
+        angularVelocity += angularImpulse * inverseInertia
     }
 
     fun applyAngularImpulse(angularImpulse: Double) {
