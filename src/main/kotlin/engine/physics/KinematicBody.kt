@@ -2,7 +2,7 @@ package org.soyuz.engine.physics
 
 import org.soyuz.util.Vector2D
 
-class KinematicBody(override var velocity: Vector2D) : PhysicsBody {
+class KinematicBody(override var velocity: Vector2D, override val restitution: Double = 0.0) : PhysicsBody {
     override var mass: Double = 0.0
         set(_) = Unit
     override fun applyForce(force: Vector2D) {

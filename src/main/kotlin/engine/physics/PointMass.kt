@@ -4,7 +4,7 @@ package org.soyuz.engine.physics
 import org.soyuz.util.Vector2D
 
 class PointMass(
-    mass: Double = 1.0,
+    mass: Double = 1.0, override val restitution: Double = 0.3,
 ) : PhysicsBody {
     init {
         require(mass >= 0.0) { "Mass cannot be negative: $mass" }
