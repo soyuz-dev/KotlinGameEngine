@@ -4,9 +4,14 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.system.MemoryUtil.NULL
+import org.soyuz.engine.collision.CircleCollider
+import org.soyuz.engine.collision.RectangleCollider
+import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.physics.*
 import org.soyuz.engine.scene.RuntimeScene
+import org.soyuz.engine.shape.CircleShape
+import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
 import org.soyuz.util.Vector2D
@@ -14,8 +19,8 @@ import org.soyuz.util.Vector2D
 fun main() {
     if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
 
-    var width = 1920
-    var height = 1080
+    var width = 800
+    var height = 800
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
@@ -66,17 +71,41 @@ fun main() {
     glLoadIdentity()
 
     // --- Physics setup ---
-    val physicsSystem = RuntimePhysicsSystem()
+    val collisionSystem = RuntimeCollisionSystem()
+    val physicsSystem = RuntimePhysicsSystem(collisionSystem)
     val scene = RuntimeScene("main")
 
-    val ball = DefaultGameEntity("ball")
-    ball.goto(position = Vector2D(width / 2.0, 1000.0)) // top-center
+    fun createWall(id: String, x: Double, y: Double, w: Double, h: Double) {
+        val wall = DefaultGameEntity(id)
+        wall.goto(Vector2D(x, y))
+        wall.shape = RectangleShape(w, h)
 
-    val body = PointMass(mass = 1.0)
-    body.addField(ConstantForceField(Vector2D(0.0, 500.0))) // gravity (screen-down)
-    body.velocity = Vector2D(250.0, -500.0) // initial toss up-right
+        val wallBody = PointMass(mass = 0.0, restitution = 0.5)
+        val wallCollider = RectangleCollider(RectangleShape(w, h))
+
+        physicsSystem.registerBody(id, wallBody)
+        collisionSystem.registerCollider(id, wallCollider)
+        scene.addEntity(wall)
+    }
+
+    val wallThickness = 100.0
+    createWall("left",   -wallThickness / 2, height / 2.0, wallThickness, height.toDouble())
+    createWall("right",   width + wallThickness / 2, height / 2.0, wallThickness, height.toDouble())
+    createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness)
+    createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness)
+
+    val ball = DefaultGameEntity("ball")
+    ball.goto(position = Vector2D(width / 2.0, 300.0))
+    ball.shape = CircleShape(10.0)
+
+    val body = PointMass(mass = 1.0, restitution = 0.7)
+    body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
+    body.velocity = Vector2D(30000000.0, 15000000.0)
+
+    val ballCollider = CircleCollider(CircleShape(10.0))
 
     physicsSystem.registerBody(ball.id, body)
+    collisionSystem.registerCollider(ball.id, ballCollider)
     scene.addEntity(ball)
 
     // --- Main loop ---
@@ -95,33 +124,29 @@ fun main() {
         // Physics step
         physicsSystem.step(scene, dt)
 
-        // Bounce off screen edges
-        val p = ball.transform.position
-        if (p.x < 0 || p.x > width) {
-            body.velocity = Vector2D(-body.velocity.x, body.velocity.y)
-
-            ball.goto(Vector2D(
-                p.x.coerceIn(0.0, width.toDouble()),
-                p.y
-            ))
-        }
-        if (p.y > height) {
-            body.velocity = Vector2D(body.velocity.x, -body.velocity.y)
-            ball.goto(Vector2D(p.x, height.toDouble()))
-        }
-        if (p.y < 0) {
-            body.velocity = Vector2D(body.velocity.x, -body.velocity.y)
-            ball.goto(position = Vector2D(p.x, 0.0))
-        }
+        if (ball.transform.position.y > height + 100) println("BALL ESCAPED: ${ball.transform.position}")
 
         // Render
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        glColor3f(1f, 0.5f, 0.2f) // orange
+        glColor3f(1f, 0.5f, 0.2f)
         glPointSize(10f)
         glBegin(GL_POINTS)
         glVertex2d(ball.transform.position.x, ball.transform.position.y)
+        glEnd()
+
+        // Draw walls as lines for debugging
+        glColor3f(0.3f, 0.3f, 0.5f)
+        glBegin(GL_LINES)
+        // top
+        glVertex2d(0.0, 0.0); glVertex2d(width.toDouble(), 0.0)
+        // bottom
+        glVertex2d(0.0, height.toDouble()); glVertex2d(width.toDouble(), height.toDouble())
+        // left
+        glVertex2d(0.0, 0.0); glVertex2d(0.0, height.toDouble())
+        // right
+        glVertex2d(width.toDouble(), 0.0); glVertex2d(width.toDouble(), height.toDouble())
         glEnd()
 
         glfwSwapBuffers(window)

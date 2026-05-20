@@ -5,6 +5,7 @@ import org.soyuz.util.Vector2D
 interface PhysicsBody {
     var mass: Double
     var velocity: Vector2D
+    val restitution: Double
     fun applyForce(force: Vector2D) = Unit
     fun applyImpulse(impulse: Vector2D, contactPoint: Vector2D) = Unit
     fun integratePosition(dt: Double): Vector2D = Vector2D.ZERO

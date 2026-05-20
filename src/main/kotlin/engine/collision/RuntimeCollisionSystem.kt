@@ -9,6 +9,13 @@ import org.soyuz.util.Vector2D
 class RuntimeCollisionSystem : CollisionSystem {
 
     private val colliders = mutableMapOf<String, Collider>()
+    override fun hasCollider(entityId: String): Boolean {
+        return colliders.containsKey(entityId)
+    }
+
+    override fun getCollider(entityId: String): Collider? {
+        return colliders[entityId]
+    }
 
     override fun registerCollider(entityId: String, collider: Collider) {
         require(entityId !in colliders) {"Entity '${entityId}' already has a registered collider."}

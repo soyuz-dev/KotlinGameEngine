@@ -4,7 +4,7 @@ import org.soyuz.util.Vector2D
 
 class RigidBody(
     mass: Double = 1.0,
-    val restitution: Double = 0.3,
+    override val restitution: Double = 0.3,
     val friction: Double = 0.2
 ) : PhysicsBody {
 
@@ -17,6 +17,10 @@ class RigidBody(
             pointMass.mass = value
             inverseInertia = 1/value
         }
+
+    var inverseMass: Double = pointMass.inverseMass
+        private set
+        get() = pointMass.inverseMass
 
     override var velocity: Vector2D
         get() = pointMass.velocity
