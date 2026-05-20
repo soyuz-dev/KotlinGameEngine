@@ -54,14 +54,14 @@ data class Vector2D(val x: Double, val y: Double) {
     }
 
     // Dot & cross products
-    fun dot(other: Vector2D): Double =
+    infix fun dot(other: Vector2D): Double =
         x * other.x + y * other.y
 
     /**
      * 2D "cross" product — returns scalar z-component magnitude
      * of the 3D cross product.
      */
-    fun cross(other: Vector2D): Double =
+    infix fun cross(other: Vector2D): Double =
         x * other.y - y * other.x
 
     /**
