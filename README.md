@@ -1,31 +1,36 @@
 
 # Bump
 
-A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow where entities own their data directly with less ECS-related bloat.
+A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow where entities own their data directly — no ECS, no ceremony.
 
 ## Status
 
-In heavy development. 
+In heavy development. Things move fast, commit messages are unhinged, the engine runs.
 
-### What works for now
+### What works
 - Window + OpenGL context (compatibility profile for now)
 - Input: keyboard, mouse, scroll — single `Input` object
-- Vector math: `Vector2D`, `Transform` with local↔world space helpers
+- Vector math: `Vector2D` with infix `dot` and `cross`, `Transform` with local↔world space helpers
 - Shapes: `CircleShape`, `RectangleShape`, `Aabb2D`, `ShapeQueries`
-- Physics: `PointMass` (Verlet integration), `KinematicBody`, force fields
-- Collision: `CircleCollider`, `RectangleCollider` with SAT
+- Physics bodies: `PointMass` (Verlet integration), `KinematicBody`, `RigidBody` (linear + angular)
+- Force fields: `ConstantForceField`, attachable to individual bodies
+- Collision detection: `CircleCollider`, `RectangleCollider` with full SAT
+- Collision resolution: impulse-based with positional correction, restitution, friction stubs
+- CCD: swept circle-vs-AABB with substepping and corner mitigation (handles 300k+ px/s without tunneling)
 - Scene graph: `Scene`, `RuntimeScene`, entity management
 - Engine loop: fixed-timestep `RuntimeEngine` with accumulator
+- Debug utility: zero-overhead inline logging via `Debug` object
 
 ### In progress
-- `CollisionSystem` detection loop
-- `Contact` generation for collision resolution
-- Event bus for collision callbacks
+- `EventBus` for collision callbacks
+- `RenderSystem` abstraction (currently immediate-mode debug rendering)
+- Rectangle CCD
 
 ### Next up
-- Collision resolution (impulse-based)
-- Rectangle collider tests
-- Collision system ↔ physics system integration
+- Event system (collision enter/exit/stay callbacks)
+- Renderer abstraction (shader-based, batching)
+- Broadphase collision (spatial hash)
+- DSL (`engine { scene { ... } }`)
 
 ## Building
 
@@ -39,23 +44,23 @@ In heavy development.
 ./gradlew run
 ```
 
-Right now `Main.kt` has a demo: an orange dot bouncing around under gravity with screen-edge collision.
+`Main.kt` demo: a ball bouncing inside a box with full CCD collision, gravity, and screen-edge walls.
 
 ## Architecture
 
 ```
 org.soyuz
 ├── engine
-│   ├── collision    — Collider, CircleCollider, RectangleCollider, CollisionSystem
+│   ├── collision    — Collider, CircleCollider, RectangleCollider, CollisionSystem, Contact
 │   ├── core         — Engine, RuntimeEngine (fixed-timestep loop)
-│   ├── entity       — GameEntity, DefaultGameEntity, Transform
+│   ├── entity       — GameEntity, DefaultGameEntity
 │   ├── events       — EventBus (stub)
-│   ├── physics      — PhysicsBody, PointMass, KinematicBody, ForceField, PhysicsSystem
+│   ├── physics      — PhysicsBody, PointMass, RigidBody, KinematicBody, ForceField, PhysicsSystem
 │   ├── policy       — Engine configuration (collision, physics bounds)
 │   ├── render       — RenderSystem, Renderable (stubs)
 │   └── scene        — Scene, RuntimeScene
-├── input            — Input, KeyListener, MouseListener
-└── util             — Vector2D, Debug, MathUtil, Aabb2D, ShapeQueries, Transform
+├── input            — Input (object), KeyListener, MouseListener
+└── util             — Vector2D, Transform, Debug, MathUtil, Aabb2D, ShapeQueries
 ```
 
 ## Ideas
