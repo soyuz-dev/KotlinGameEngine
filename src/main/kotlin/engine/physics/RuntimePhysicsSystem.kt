@@ -98,8 +98,7 @@ class RuntimePhysicsSystem(
                         if (vn < 0) {
                             // BOUNCE THRESHOLD: If impact speed is tiny (like resting gravity),
                             // treat restitution as 0.0 to prevent energy generation loops.
-                            val bounceThreshold = 30.0
-                            val e = if (abs(vn) < bounceThreshold) 0.0 else body.restitution
+                            val e = body.restitution
 
                             val impulseMagnitude = -(1.0 + e) * vn * body.mass
                             body.applyImpulse(hitNormal * impulseMagnitude, Vector2D.ZERO)
@@ -144,7 +143,8 @@ class RuntimePhysicsSystem(
             // If objects are already separating or moving apart, skip entirely
             if (vAlongNormal > 0.0) continue
 
-            val e = minOf(bodyA.restitution, bodyB.restitution)
+            val approachSpeed = abs(vAlongNormal)
+            val e = if (approachSpeed < 30.0) 0.0 else minOf(bodyA.restitution, bodyB.restitution)
             val j = -(1.0 + e) * vAlongNormal / (invMassA + invMassB)
             val impulse = normal * j
 

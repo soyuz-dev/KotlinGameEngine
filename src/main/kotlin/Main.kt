@@ -80,7 +80,7 @@ fun main() {
         wall.goto(Vector2D(x, y))
         wall.shape = RectangleShape(w, h)
 
-        val wallBody = PointMass(mass = 0.0, restitution = 0.5)
+        val wallBody = PointMass(mass = 0.0, restitution = 1.0)
         val wallCollider = RectangleCollider(RectangleShape(w, h))
 
         physicsSystem.registerBody(id, wallBody)
@@ -98,9 +98,9 @@ fun main() {
     ball.goto(position = Vector2D(width / 2.0, 300.0))
     ball.shape = CircleShape(10.0)
 
-    val body = PointMass(mass = 1.0, restitution = 0.7)
+    val body = PointMass(mass = 1.0, restitution = 1.0)
     body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
-    body.velocity = Vector2D(30000.0, 15000.0)
+    body.velocity = Vector2D(.0, 100.0)
 
     val ballCollider = CircleCollider(CircleShape(10.0))
 
