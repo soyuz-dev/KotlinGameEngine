@@ -18,7 +18,8 @@ class RigidBody(
             inverseInertia = 1/value
         }
 
-    val inverseMass: Double
+    var inverseMass: Double = pointMass.inverseMass
+        private set
         get() = pointMass.inverseMass
 
     override var velocity: Vector2D
