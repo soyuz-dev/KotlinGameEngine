@@ -100,7 +100,7 @@ fun main() {
 
     val body = PointMass(mass = 1.0, restitution = 0.7)
     body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
-    body.velocity = Vector2D(30000000.0, 15000000.0)
+    body.velocity = Vector2D(30000.0, 15000.0)
 
     val ballCollider = CircleCollider(CircleShape(10.0))
 
@@ -117,7 +117,7 @@ fun main() {
         val rawDt = currentTime - lastTime
         lastTime = currentTime
 
-        val dt = minOf(rawDt, 0.1)
+        val dt = minOf(rawDt, 0.02)
 
         glfwSetWindowTitle(window, "Bump | Mouse: (${"%.0f".format(pos.x)}, ${"%.0f".format(pos.y)}) | fps: ${"%.0f".format(1.0 / dt)}")
 

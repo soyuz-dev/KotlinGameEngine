@@ -16,7 +16,10 @@ class RectangleCollider(
             is CircleCollider -> {
                 val closest = closestPointTo(otherTransform.position, selfTransform)
                 val radius = other.worldRadius(otherTransform)
-                return (otherTransform.position - closest).lengthSquared() <= radius * radius
+                val distSq = (otherTransform.position-closest).lengthSquared()
+                val result = distSq <= radius * radius
+                println("rect-circle: rectPos=${selfTransform.position}, circlePos=${otherTransform.position}, closest=$closest, distSq=$distSq, radius=$radius, result=$result")
+                result
             }
             is RectangleCollider -> {
                 return satForRectangle(other, selfTransform, otherTransform)

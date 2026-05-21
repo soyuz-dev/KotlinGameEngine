@@ -1,6 +1,7 @@
 package org.soyuz.engine.physics
 
 
+import org.soyuz.engine.collision.Contact
 import org.soyuz.util.Vector2D
 
 class PointMass(
@@ -44,6 +45,10 @@ class PointMass(
     }
 
     fun applyImpulse(impulse: Vector2D) {
+        velocity += impulse * inverseMass
+    }
+
+    override fun applyImpulse(impulse: Vector2D, contactPoint: Vector2D) {
         velocity += impulse * inverseMass
     }
     /**

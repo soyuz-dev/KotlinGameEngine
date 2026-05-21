@@ -76,7 +76,6 @@ class RuntimePhysicsSystem(
                             if (hit != null) {
                                 val (hitTime, normal) = hit
 
-                                // Gatekeeper: Only process if the current velocity is moving INTO the surface normal
                                 if (body.velocity.dot(normal) < -1e-5) {
                                     if (earliestHitTime == null || hitTime < earliestHitTime) {
                                         earliestHitTime = hitTime
@@ -97,18 +96,21 @@ class RuntimePhysicsSystem(
                         // 3. Resolve instantaneous bounce impulse response
                         val vn = body.velocity.dot(hitNormal)
                         if (vn < 0) {
-                            val impulseMagnitude = -(1.0 + body.restitution) * vn * body.mass
+                            // BOUNCE THRESHOLD: If impact speed is tiny (like resting gravity),
+                            // treat restitution as 0.0 to prevent energy generation loops.
+                            val bounceThreshold = 30.0
+                            val e = if (abs(vn) < bounceThreshold) 0.0 else body.restitution
+
+                            val impulseMagnitude = -(1.0 + e) * vn * body.mass
                             body.applyImpulse(hitNormal * impulseMagnitude, Vector2D.ZERO)
 
-                            // Explicitly reflect inline velocity to update the trajectory immediately
-                            body.velocity += hitNormal * (-(1.0 + body.restitution) * vn)
+                            // FIXED: Removed duplicate body.velocity manual addition line.
                         }
 
-                        // 4. Update the remaining displacement for the frame using the NEW reflected velocity vector
+                        // 4. Update the remaining displacement using the freshly modified velocity vector
                         val dtRemaining = dt * (1.0 - earliestHitTime)
                         currentDisplacement = body.velocity * dtRemaining
                     } else {
-                        // No obstacles ahead; complete remaining travel path safely
                         currentPos += currentDisplacement
                         break
                     }
@@ -118,7 +120,6 @@ class RuntimePhysicsSystem(
                 entity.transform = entity.transform.translated(displacement)
             }
         }
-
         // Phase 4: Discrete Penetration Pass (Handles shallow resting contact overlaps safely)
         val contacts = collisionSystem.detect(scene)
 

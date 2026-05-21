@@ -1,7 +1,6 @@
 package org.soyuz.engine.collision
 
 import org.soyuz.engine.scene.Scene
-import org.soyuz.util.Debug
 import org.soyuz.util.MathUtil
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
@@ -9,13 +8,9 @@ import org.soyuz.util.Vector2D
 class RuntimeCollisionSystem : CollisionSystem {
 
     private val colliders = mutableMapOf<String, Collider>()
-    override fun hasCollider(entityId: String): Boolean {
-        return colliders.containsKey(entityId)
-    }
 
-    override fun getCollider(entityId: String): Collider? {
-        return colliders[entityId]
-    }
+
+    override fun getCollider(entityId: String): Collider? = colliders[entityId]
 
     override fun registerCollider(entityId: String, collider: Collider) {
         require(entityId !in colliders) {"Entity '${entityId}' already has a registered collider."}
@@ -42,14 +37,16 @@ class RuntimeCollisionSystem : CollisionSystem {
                     val contact = computeContact(a.id, b.id, colliderA, colliderB, a.transform, b.transform)
                     if (contact != null) {
                         contacts.add(contact)
-                        Debug.log {"Contact: $contact, Contact: $contact"}
                     }
 
-                    Debug.log {"Collision: ${a.id} hit ${b.id}"}
                 }
             }
         }
         return contacts
+    }
+
+    override fun hasCollider(id: String): Boolean {
+        return id in colliders.keys
     }
 
 
@@ -98,16 +95,37 @@ class RuntimeCollisionSystem : CollisionSystem {
     ): Contact? {
         val closest = rect.closestPointTo(tCircle.position, tRect)
         val delta = tCircle.position - closest
-        val dist = delta.length()
+        var dist = delta.length()
         val radius = circle.worldRadius(tCircle)
-        val depth = radius - dist
+
+        // 1. Calculate depth assuming standard outside-to-inside intersection
+        var depth = radius - dist
         if (depth <= 0.0) return null
 
-        val normal = if (dist < Vector2D.EPSILON_NORMALIZE) {
-            // Circle center is exactly on the closest point — push along rect's Y axis
-            Vector2D.UNIT_Y
+        var normal: Vector2D
+
+        // 2. Safely handle deep penetration or exact overlaps
+        if (dist < Vector2D.EPSILON_NORMALIZE) {
+            // The circle center is perfectly on the edge, or deeply inside.
+            // Derive normal pointing from the rectangle center to the circle center.
+            val rectToCircle = tCircle.position - tRect.position
+            if (rectToCircle.length() > Vector2D.EPSILON_NORMALIZE) {
+                normal = rectToCircle.normalized()
+            } else {
+                // Perfectly overlapping centers fallback
+                normal = Vector2D.UNIT_Y
+            }
         } else {
-            delta.normalized()
+            normal = delta.normalized()
+
+            // 3. Double-check if the circle center is actually INSIDE the rectangle body
+            // If it's inside, the normal vector needs to be inverted to push it OUT.
+            val rectToCircle = tCircle.position - tRect.position
+            if (rectToCircle.dot(normal) < 0) {
+                normal = -normal
+                // Adjust depth calculation if necessary for deep containment
+                depth = radius + dist
+            }
         }
 
         return Contact(entityA, entityB, closest, normal, depth)
