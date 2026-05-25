@@ -39,7 +39,7 @@ class CircleCollider(
         // Account for scale (take the max component for circles; circles stay circular
         // unless non-uniform scale, but that's an edge case for advanced use)
         val radiusA = worldRadius(transform = selfTransform)
-        val radiusB = other.shape.radius.toDouble() * maxOf(
+        val radiusB = other.shape.radius * maxOf(
             kotlin.math.abs(otherTransform.scale.x),
             kotlin.math.abs(otherTransform.scale.y)
         )
@@ -47,10 +47,6 @@ class CircleCollider(
 
         val result = distanceSq <= radiusSum * radiusSum
 
-        Debug.log {
-            "[CircleCollider] intersect test: $a vs $b | " +
-                    "dist²=$distanceSq radiusSum²=${radiusSum * radiusSum} → $result"
-        }
 
         return result
     }
@@ -75,7 +71,6 @@ class CircleCollider(
 
         if (distSq < Vector2D.EPSILON_NORMALIZE) {
             // Perfect overlap — return center
-            Debug.log { "[CircleCollider] pointOfContact: perfect overlap at $a" }
             return a
         }
 
@@ -86,8 +81,6 @@ class CircleCollider(
         val nx = dx / dist
         val ny = dy / dist
         val contact = Vector2D(a.x + nx * radiusA, a.y + ny * radiusA)
-
-        Debug.log { "[CircleCollider] pointOfContact: $contact (from $a toward $b)" }
 
         return contact
     }
@@ -114,7 +107,7 @@ class CircleCollider(
         }
 
         val dist = sqrt(distSq)
-        val radius = shape.radius.toDouble() * maxOf(
+        val radius = shape.radius * maxOf(
             kotlin.math.abs(transform.scale.x),
             kotlin.math.abs(transform.scale.y)
         )
@@ -128,7 +121,7 @@ class CircleCollider(
      */
     fun contains(point: Vector2D, transform: Transform): Boolean {
         val center = transform.position
-        val radius = shape.radius.toDouble() * maxOf(
+        val radius = shape.radius * maxOf(
             kotlin.math.abs(transform.scale.x),
             kotlin.math.abs(transform.scale.y)
         )

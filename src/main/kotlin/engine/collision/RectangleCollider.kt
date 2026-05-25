@@ -18,7 +18,6 @@ class RectangleCollider(
                 val radius = other.worldRadius(otherTransform)
                 val distSq = (otherTransform.position-closest).lengthSquared()
                 val result = distSq <= radius * radius
-                println("rect-circle: rectPos=${selfTransform.position}, circlePos=${otherTransform.position}, closest=$closest, distSq=$distSq, radius=$radius, result=$result")
                 result
             }
             is RectangleCollider -> {
@@ -78,7 +77,6 @@ class RectangleCollider(
             val (minA, maxA) = MathUtil.project(selfCorners, axis)
             val (minB, maxB) = MathUtil.project(otherCorners, axis)
             val overlap = minOf(maxA, maxB) - maxOf(minA, minB)
-            println("axis: $axis, minA=$minA, maxA=$maxA, minB=$minB, maxB=$maxB, overlap=$overlap")
             if (overlap <= 0) return false // separated on this axis
         }
         return true
