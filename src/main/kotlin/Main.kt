@@ -8,6 +8,8 @@ import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.entity.DefaultGameEntity
+import org.soyuz.engine.events.CollisionEvent
+import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
@@ -70,10 +72,33 @@ fun main() {
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-    // --- Physics setup ---
+// --- Physics setup ---
     val collisionSystem = RuntimeCollisionSystem()
-    val physicsSystem = RuntimePhysicsSystem(collisionSystem)
+    val eventBus = RuntimeEventBus()
+    val physicsSystem = RuntimePhysicsSystem(collisionSystem, eventBus)
     val scene = RuntimeScene("main")
+
+    eventBus.subscribe(CollisionEvent::class.java) { event ->
+        println("Bump! ${event.sourceEntityId} hit ${event.otherEntityId}")
+    }
+    var ballCount = 0
+
+    fun makeBall(x: Double, y: Double, vx: Double, vy: Double, mass: Double = 1.0, radius: Double = 10.0, restitution: Double = 0.8) {
+        val id = "ball_${ballCount++}"
+        val ball = DefaultGameEntity(id)
+        ball.goto(position = Vector2D(x, y))
+        ball.shape = CircleShape(radius)
+
+        val body = PointMass(mass = mass, restitution = restitution)
+        body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
+        body.velocity = Vector2D(vx, vy)
+
+        val collider = CircleCollider(CircleShape(radius))
+
+        physicsSystem.registerBody(id, body)
+        collisionSystem.registerCollider(id, collider)
+        scene.addEntity(ball)
+    }
 
     fun createWall(id: String, x: Double, y: Double, w: Double, h: Double) {
         val wall = DefaultGameEntity(id)
@@ -94,34 +119,9 @@ fun main() {
     createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness)
     createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness)
 
-    val ball = DefaultGameEntity("ball")
-    ball.goto(position = Vector2D(width / 2.0, 300.0))
-    ball.shape = CircleShape(10.0)
-
-    val body = PointMass(mass = 1.0, restitution = 1.0)
-    body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
-    body.velocity = Vector2D(.0, 100.0)
-
-    val ballCollider = CircleCollider(CircleShape(10.0))
-
-    physicsSystem.registerBody(ball.id, body)
-    collisionSystem.registerCollider(ball.id, ballCollider)
-    scene.addEntity(ball)
-
-    // Ball 2
-    val ball2 = DefaultGameEntity("ball2")
-    ball2.goto(position = Vector2D(2 * width / 3.0, 300.0))
-    ball2.shape = CircleShape(30.0)
-
-    val body2 = PointMass(mass = 2.0, restitution = 1.0)
-    body2.addField(ConstantForceField(Vector2D(0.0, 500.0)))
-    body2.velocity = Vector2D(-200.0, 0.0)
-
-    val ballCollider2 = CircleCollider(CircleShape(30.0))
-
-    physicsSystem.registerBody(ball2.id, body2)
-    collisionSystem.registerCollider(ball2.id, ballCollider2)
-    scene.addEntity(ball2)
+// Spawn a couple starter balls
+    makeBall(width / 3.0, height / 2.0, 200.0, -100.0, mass = 1.0, radius = 12.0)
+    makeBall(2 * width / 3.0, height / 2.0, -150.0, 50.0, mass = 2.0, radius = 18.0)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
@@ -139,29 +139,43 @@ fun main() {
         // Physics step
         physicsSystem.step(scene, dt)
 
-        if (ball.transform.position.y > height + 100) println("BALL ESCAPED: ${ball.transform.position}")
+        // Event Polling
 
-        // Render
+        glfwPollEvents()
+
+
+        // Spawn on click
+        if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            val mPos = MouseListener.getPos()
+            val r = 5.0 + Math.random() * 20.0
+            val vx = (Math.random() - 0.5) * 1200.0
+            val vy = (Math.random() - 0.5) * 1200.0
+            val m = 0.5 + Math.random() * 2.0
+            makeBall(mPos.x, mPos.y, vx, vy, mass = m, radius = r)
+            println("Total balls: ${scene.allEntities().count { it.id.startsWith("ball_") }}")  // debug
+        }
+
+        // BG RENDERING
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        // Ball 1 - orange
-        glColor3f(1f, 0.5f, 0.2f)
-        glPointSize(15f)
-        glBegin(GL_POINTS)
-        glVertex2d(ball.transform.position.x, ball.transform.position.y)
-        glEnd()
-
-        // Ball 2 - cyan
-        glColor3f(0.2f, 0.8f, 1f)
-        glPointSize(15f)
-        glBegin(GL_POINTS)
-        glVertex2d(ball2.transform.position.x, ball2.transform.position.y)
-        glEnd()
+        // Ball RENDERING
+        for (entity in scene.allEntities()) {
+            if (entity.shape is CircleShape && entity.id.startsWith("ball_")) {
+                val r = 0.5f
+                val g = 0.25f
+                val b = 0f
+                glColor3f(r, g, b)
+                glPointSize((entity.shape as CircleShape).radius.toFloat())
+                glBegin(GL_POINTS)
+                glVertex2d(entity.transform.position.x, entity.transform.position.y)
+                glEnd()
+            }
+        }
 
 
         glfwSwapBuffers(window)
-        glfwPollEvents()
+
 
         KeyListener.endFrame()
         MouseListener.endFrame()

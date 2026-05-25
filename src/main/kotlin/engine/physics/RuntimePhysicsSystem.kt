@@ -3,6 +3,9 @@ package org.soyuz.engine.physics
 import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.CollisionSystem
 import org.soyuz.engine.collision.RectangleCollider
+import org.soyuz.engine.events.CollisionEvent
+import org.soyuz.engine.events.EventBus
+import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
@@ -12,7 +15,8 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 class RuntimePhysicsSystem(
-    private val collisionSystem: CollisionSystem
+    private val collisionSystem: CollisionSystem,
+    private val eventBus: EventBus,
 ) : PhysicsSystem {
 
     private val bodies = mutableMapOf<String, PhysicsBody>()
@@ -41,6 +45,8 @@ class RuntimePhysicsSystem(
         for ((entityId, body) in bodies) {
             displacements[entityId] = body.integratePosition(dt)
         }
+
+        var earliestHitOtherId: String? = null
 
         // Phase 3: Predictive CCD Substepping & Dynamic Bouncing Pass
         for ((entityId, body) in bodies) {
@@ -80,6 +86,7 @@ class RuntimePhysicsSystem(
                                     if (earliestHitTime == null || hitTime < earliestHitTime) {
                                         earliestHitTime = hitTime
                                         hitNormal = normal
+                                        earliestHitOtherId = otherId
                                     }
                                 }
                             }
@@ -103,7 +110,7 @@ class RuntimePhysicsSystem(
                             val impulseMagnitude = -(1.0 + e) * vn * body.mass
                             body.applyImpulse(hitNormal * impulseMagnitude, Vector2D.ZERO)
 
-                            // FIXED: Removed duplicate body.velocity manual addition line.
+                            eventBus.publish(CollisionEvent(entityId, earliestHitOtherId!!))
                         }
 
                         // 4. Update the remaining displacement using the freshly modified velocity vector
@@ -127,6 +134,8 @@ class RuntimePhysicsSystem(
             val bodyB = bodies[contact.entityB] ?: continue
             val entityA = scene.findEntity(contact.entityA) ?: continue
             val entityB = scene.findEntity(contact.entityB) ?: continue
+
+            eventBus.publish(CollisionEvent(contact.entityA, contact.entityB))
 
             val invMassA = getInverseMass(bodyA)
             val invMassB = getInverseMass(bodyB)
