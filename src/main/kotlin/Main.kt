@@ -108,6 +108,21 @@ fun main() {
     collisionSystem.registerCollider(ball.id, ballCollider)
     scene.addEntity(ball)
 
+    // Ball 2
+    val ball2 = DefaultGameEntity("ball2")
+    ball2.goto(position = Vector2D(2 * width / 3.0, 300.0))
+    ball2.shape = CircleShape(30.0)
+
+    val body2 = PointMass(mass = 2.0, restitution = 1.0)
+    body2.addField(ConstantForceField(Vector2D(0.0, 500.0)))
+    body2.velocity = Vector2D(-200.0, 0.0)
+
+    val ballCollider2 = CircleCollider(CircleShape(30.0))
+
+    physicsSystem.registerBody(ball2.id, body2)
+    collisionSystem.registerCollider(ball2.id, ballCollider2)
+    scene.addEntity(ball2)
+
     // --- Main loop ---
     var lastTime = glfwGetTime()
 
@@ -130,24 +145,20 @@ fun main() {
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+        // Ball 1 - orange
         glColor3f(1f, 0.5f, 0.2f)
-        glPointSize(10f)
+        glPointSize(15f)
         glBegin(GL_POINTS)
         glVertex2d(ball.transform.position.x, ball.transform.position.y)
         glEnd()
 
-        // Draw walls as lines for debugging
-        glColor3f(0.3f, 0.3f, 0.5f)
-        glBegin(GL_LINES)
-        // top
-        glVertex2d(0.0, 0.0); glVertex2d(width.toDouble(), 0.0)
-        // bottom
-        glVertex2d(0.0, height.toDouble()); glVertex2d(width.toDouble(), height.toDouble())
-        // left
-        glVertex2d(0.0, 0.0); glVertex2d(0.0, height.toDouble())
-        // right
-        glVertex2d(width.toDouble(), 0.0); glVertex2d(width.toDouble(), height.toDouble())
+        // Ball 2 - cyan
+        glColor3f(0.2f, 0.8f, 1f)
+        glPointSize(15f)
+        glBegin(GL_POINTS)
+        glVertex2d(ball2.transform.position.x, ball2.transform.position.y)
         glEnd()
+
 
         glfwSwapBuffers(window)
         glfwPollEvents()
