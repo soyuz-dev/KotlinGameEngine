@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL20.glLinkProgram
 import org.lwjgl.opengl.GL20.glShaderSource
 import org.lwjgl.opengl.GL20.glUniform4f
 import org.lwjgl.opengl.GL20.glUniformMatrix4fv
+import org.lwjgl.opengl.GL20.glUseProgram
 
 class Shader (
     val vertex :String,
@@ -63,6 +64,10 @@ class Shader (
 
     fun setModel(matrix: FloatArray) {
         glUniformMatrix4fv(modelLoc, false, matrix)
+    }
+
+    fun bind() {
+        glUseProgram(program)
     }
 
     fun cleanup() {
