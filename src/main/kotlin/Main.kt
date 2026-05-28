@@ -11,6 +11,9 @@ import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
+import org.soyuz.engine.render.Camera
+import org.soyuz.engine.render.Mesh
+import org.soyuz.engine.render.Shader
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
@@ -37,15 +40,38 @@ fun main() {
 
     println("OpenGL ${glGetString(GL_VERSION)}")
 
+    // --- Renderer setup (after physics setup, before main loop) ---
+    val vertexShader = """
+    #version 330 core
+    layout(location = 0) in vec2 aPosition;
+    uniform mat4 uProjection;
+    uniform mat4 uModel;
+    void main() {
+        gl_Position = uProjection * uModel * vec4(aPosition, 0.0, 1.0);
+    }
+    """.trimIndent()
+
+    val fragmentShader = """
+    #version 330 core
+    uniform vec4 uColor;
+    out vec4 fragColor;
+    void main() {
+        fragColor = uColor;
+    }
+    """.trimIndent()
+
+    val shader = Shader(vertexShader, fragmentShader)
+    val camera = Camera()
+    camera.setOrtho(width.toFloat(), height.toFloat())
+    val quadMesh = Mesh.quad()
+    val circleMesh = Mesh.circle(32)
+
     // --- Framebuffer size callback ---
     glfwSetFramebufferSizeCallback(window) { _, w, h ->
         width = w
         height = h
         glViewport(0, 0, width, height)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0.0, width.toDouble(), height.toDouble(), 0.0, -1.0, 1.0)
-        glMatrixMode(GL_MODELVIEW)
+        camera.setOrtho(width.toFloat(), height.toFloat())
     }
 
     // --- Input callbacks ---
@@ -134,7 +160,7 @@ fun main() {
 
         val dt = minOf(rawDt, 0.02)
 
-        glfwSetWindowTitle(window, "Bump | Mouse: (${"%.0f".format(pos.x)}, ${"%.0f".format(pos.y)}) | fps: ${"%.0f".format(1.0 / dt)}")
+        glfwSetWindowTitle(window, "Bump! | Mouse: (${"%.0f".format(pos.x)}, ${"%.0f".format(pos.y)}) | fps: ${"%.0f".format(1.0 / dt)}")
 
         // Physics step
         physicsSystem.step(scene, dt)
@@ -154,28 +180,32 @@ fun main() {
             makeBall(mPos.x, mPos.y, vx, vy, mass = m, radius = r)
             println("Total balls: ${scene.allEntities().count { it.id.startsWith("ball_") }}")  // debug
         }
-
-        // BG RENDERING
+        // Render
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT)
 
-        // Ball RENDERING
+        shader.bind()
+        shader.setProjection(camera.getProjection())
+
         for (entity in scene.allEntities()) {
             if (entity.shape is CircleShape && entity.id.startsWith("ball_")) {
-                val r = 0.5f
-                val g = 0.25f
-                val b = 0f
-                glColor3f(r, g, b)
-                glPointSize((entity.shape as CircleShape).radius.toFloat())
-                glBegin(GL_POINTS)
-                glVertex2d(entity.transform.position.x, entity.transform.position.y)
-                glEnd()
+                // Model matrix: translate + scale
+                val model = FloatArray(16)
+                // Start with identity, apply scale then translation
+                model[0] = ((entity.shape as CircleShape).radius * 2).toFloat()  // scale x
+                model[5] = ((entity.shape as CircleShape).radius * 2).toFloat()  // scale y
+                model[10] = 1f
+                model[12] = entity.transform.position.x.toFloat()  // translate x
+                model[13] = entity.transform.position.y.toFloat()  // translate y
+                model[15] = 1f
+
+                shader.setModel(model)
+                shader.setColor(0.5f, 0.25f, 0f, 1f)
+                circleMesh.draw()
             }
         }
 
-
         glfwSwapBuffers(window)
-
 
         KeyListener.endFrame()
         MouseListener.endFrame()
