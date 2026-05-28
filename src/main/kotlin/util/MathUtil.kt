@@ -1,5 +1,8 @@
 package org.soyuz.util
 
+import kotlin.math.cos
+import kotlin.math.sin
+
 object MathUtil {
     fun clamp(toClamp:Double, min: Double, max: Double) : Double {
         return if (toClamp > max) max else if (toClamp < min) min else toClamp
@@ -14,5 +17,22 @@ object MathUtil {
             if (projection > max) max = projection
         }
         return   min to max
+    }
+
+    fun matrixModel(transform: Transform): FloatArray {
+        val m = FloatArray(16)
+        val c = cos(transform.rotationRadians).toFloat()
+        val s = sin(transform.rotationRadians).toFloat()
+        val sx = transform.scale.x.toFloat()
+        val sy = transform.scale.y.toFloat()
+        val tx = transform.position.x.toFloat()
+        val ty = transform.position.y.toFloat()
+
+        m[0] = c * sx;  m[4] = -s * sy; m[8] = 0f;   m[12] = tx
+        m[1] = s * sx;  m[5] =  c * sy; m[9] = 0f;   m[13] = ty
+        m[2] = 0f;      m[6] = 0f;      m[10] = 1f;  m[14] = 0f
+        m[3] = 0f;      m[7] = 0f;      m[11] = 0f;  m[15] = 1f
+
+        return m
     }
 }
