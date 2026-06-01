@@ -45,26 +45,7 @@ fun main() {
     println("OpenGL ${glGetString(GL_VERSION)}")
 
     // --- Renderer setup (after physics setup, before main loop) ---
-    val vertexShader = """
-    #version 330 core
-    layout(location = 0) in vec2 aPosition;
-    uniform mat4 uProjection;
-    uniform mat4 uModel;
-    void main() {
-        gl_Position = uProjection * uModel * vec4(aPosition, 0.0, 1.0);
-    }
-    """.trimIndent()
-
-    val fragmentShader = """
-    #version 330 core
-    uniform vec4 uColor;
-    out vec4 fragColor;
-    void main() {
-        fragColor = uColor;
-    }
-    """.trimIndent()
-
-    val shader = Shader(vertexShader, fragmentShader)
+    val shader = Shader.fromResource("/shaders/default.vert", "/shaders/default.frag")
     val camera = Camera()
     camera.setOrtho(width.toFloat(), height.toFloat())
     val quadMesh = Mesh.quad()
