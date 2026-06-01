@@ -1,5 +1,6 @@
 package org.soyuz.engine.entity
 
+import org.soyuz.engine.render.Painter
 import org.soyuz.engine.shape.Shape2D
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
@@ -9,7 +10,8 @@ typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 class DefaultGameEntity(
     override val id: String,
     override var transform: Transform = Transform(),
-    override var shape: Shape2D? = null
+    override var shape: Shape2D? = null,
+    override var painter: Painter? = null,
 ) : GameEntity {
     private val updateCallbacks = mutableListOf<GameEntityUpdateCallback>()
     private val collisionCallbacks = mutableListOf<(other: GameEntity) -> Unit>()

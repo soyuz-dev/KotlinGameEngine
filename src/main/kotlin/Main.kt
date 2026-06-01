@@ -100,7 +100,7 @@ fun main() {
         )
 
         val body = PointMass(mass = mass, restitution = restitution)
-        body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
+        body.addField(ConstantAccelerationField(Vector2D(0.0, 981.0)))
         body.velocity = Vector2D(vx, vy)
 
         val collider = CircleCollider(CircleShape(radius))

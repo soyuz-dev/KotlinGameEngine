@@ -1,5 +1,6 @@
 package org.soyuz.engine.entity
 
+import org.soyuz.engine.render.Painter
 import org.soyuz.engine.shape.Shape2D
 import org.soyuz.util.Transform
 
@@ -9,6 +10,8 @@ interface GameEntity {
     var transform: Transform
 
     var shape: Shape2D?
+
+    var painter : Painter?
 
     fun onUpdate(callback: (dt: Float) -> Unit)
 

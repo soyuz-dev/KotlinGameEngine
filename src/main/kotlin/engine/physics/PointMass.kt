@@ -1,7 +1,7 @@
 package org.soyuz.engine.physics
 
 
-import org.soyuz.engine.collision.Contact
+import org.soyuz.engine.physics.forcefields.ForceField
 import org.soyuz.util.Vector2D
 
 class PointMass(
@@ -40,7 +40,7 @@ class PointMass(
 
     fun accumulateForces(position: Vector2D) {
         for (field in forceFields) {
-            applyForce(field.forceAt(position, velocity))
+            applyForce(field.forceAt(position, this))
         }
     }
 
