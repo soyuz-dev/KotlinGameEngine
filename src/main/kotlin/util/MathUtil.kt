@@ -19,7 +19,9 @@ object MathUtil {
         return   min to max
     }
 
-    fun matrixModel(transform: Transform): FloatArray {
+// MathUtil.kt additions
+
+    fun modelMatrix(transform: Transform): FloatArray {
         val m = FloatArray(16)
         val c = cos(transform.rotationRadians).toFloat()
         val s = sin(transform.rotationRadians).toFloat()
@@ -28,11 +30,23 @@ object MathUtil {
         val tx = transform.position.x.toFloat()
         val ty = transform.position.y.toFloat()
 
-        m[0] = c * sx;  m[4] = -s * sy; m[8] = 0f;   m[12] = tx
-        m[1] = s * sx;  m[5] =  c * sy; m[9] = 0f;   m[13] = ty
-        m[2] = 0f;      m[6] = 0f;      m[10] = 1f;  m[14] = 0f
-        m[3] = 0f;      m[7] = 0f;      m[11] = 0f;  m[15] = 1f
+        // Column-major: scale * rotate * translate
+        m[0] = c * sx;  m[4] = -s * sy; m[8]  = 0f; m[12] = tx
+        m[1] = s * sx;  m[5] =  c * sy; m[9]  = 0f; m[13] = ty
+        m[2] = 0f;      m[6] =  0f;     m[10] = 1f; m[14] = 0f
+        m[3] = 0f;      m[7] =  0f;     m[11] = 0f; m[15] = 1f
 
+        return m
+    }
+
+    fun orthoMatrix(width: Float, height: Float): FloatArray {
+        val m = FloatArray(16)
+        m[0] = 2f / width
+        m[5] = -2f / height
+        m[10] = -1f
+        m[12] = -1f
+        m[13] = 1f
+        m[15] = 1f
         return m
     }
 }

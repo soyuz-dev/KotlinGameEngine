@@ -76,7 +76,14 @@ class Shader (
 
     companion object {
         fun fromResource(vertexPath : String, fragmentPath : String): Shader {
-            TODO("bruh")
+            val vertexResource = Shader::class.java.getResourceAsStream(vertexPath)
+                ?.bufferedReader()?.readText()
+                ?: throw IllegalArgumentException("vertex shader $vertexPath not found")
+            val fragmentResource = Shader::class.java.getResourceAsStream(fragmentPath)
+                ?.bufferedReader()?.readText()
+                ?: throw IllegalArgumentException("fragment shader $fragmentPath not found")
+
+            return Shader(vertexResource, fragmentResource)
         }
     }
 

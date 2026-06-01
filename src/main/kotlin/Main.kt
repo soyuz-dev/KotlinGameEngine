@@ -11,14 +11,18 @@ import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
+import org.soyuz.engine.physics.forcefields.ConstantAccelerationField
+import org.soyuz.engine.physics.forcefields.ConstantForceField
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
 import org.soyuz.engine.render.Shader
+import org.soyuz.engine.render.SolidColor
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
+import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
 
 fun main() {
@@ -29,7 +33,7 @@ fun main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
     val window = glfwCreateWindow(width, height, "Bump", NULL, NULL)
     if (window == NULL) throw RuntimeException("Failed to create window")
@@ -91,14 +95,7 @@ fun main() {
         MouseListener.mouseScrollCallback(0, x, y)
     }
 
-    // --- Initial projection setup ---
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glOrtho(0.0, width.toDouble(), height.toDouble(), 0.0, -1.0, 1.0)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
-
-// --- Physics setup ---
+    // --- Physics setup ---
     val collisionSystem = RuntimeCollisionSystem()
     val eventBus = RuntimeEventBus()
     val physicsSystem = RuntimePhysicsSystem(collisionSystem, eventBus)
@@ -114,6 +111,12 @@ fun main() {
         val ball = DefaultGameEntity(id)
         ball.goto(position = Vector2D(x, y))
         ball.shape = CircleShape(radius)
+        ball.painter = SolidColor(
+            Math.random(),
+            Math.random(),
+            Math.random(),
+            1.0
+        )
 
         val body = PointMass(mass = mass, restitution = restitution)
         body.addField(ConstantForceField(Vector2D(0.0, 500.0)))
@@ -130,6 +133,7 @@ fun main() {
         val wall = DefaultGameEntity(id)
         wall.goto(Vector2D(x, y))
         wall.shape = RectangleShape(w, h)
+        wall.painter = SolidColor(0.2, 0.2, 0.3, 1.0)
 
         val wallBody = PointMass(mass = 0.0, restitution = 1.0)
         val wallCollider = RectangleCollider(RectangleShape(w, h))
@@ -140,10 +144,10 @@ fun main() {
     }
 
     val wallThickness = 100.0
-    createWall("left",   -wallThickness / 2, height / 2.0, wallThickness, height.toDouble())
-    createWall("right",   width + wallThickness / 2, height / 2.0, wallThickness, height.toDouble())
-    createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness)
-    createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness)
+    createWall("left",   -wallThickness / 2, height / 2.0, wallThickness*1.5, height.toDouble())
+    createWall("right",   width + wallThickness / 2, height / 2.0, wallThickness*1.5, height.toDouble())
+    createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness*1.5)
+    createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness*1.5)
 
 // Spawn a couple starter balls
     makeBall(width / 3.0, height / 2.0, 200.0, -100.0, mass = 1.0, radius = 12.0)
@@ -189,19 +193,16 @@ fun main() {
 
         for (entity in scene.allEntities()) {
             if (entity.shape is CircleShape && entity.id.startsWith("ball_")) {
-                // Model matrix: translate + scale
-                val model = FloatArray(16)
-                // Start with identity, apply scale then translation
-                model[0] = ((entity.shape as CircleShape).radius * 2).toFloat()  // scale x
-                model[5] = ((entity.shape as CircleShape).radius * 2).toFloat()  // scale y
-                model[10] = 1f
-                model[12] = entity.transform.position.x.toFloat()  // translate x
-                model[13] = entity.transform.position.y.toFloat()  // translate y
-                model[15] = 1f
-
-                shader.setModel(model)
-                shader.setColor(0.5f, 0.25f, 0f, 1f)
+                shader.setModel(MathUtil.modelMatrix(entity.transform.copy(scale = Vector2D((entity.shape as CircleShape).radius * 2, (entity.shape as CircleShape).radius * 2))))
+                entity.painter?.bind(shader) ?: shader.setColor(1f, 0f, 1f, 1f)
                 circleMesh.draw()
+            }
+            if (entity.shape is RectangleShape) {
+                shader.setModel(MathUtil.modelMatrix(entity.transform.copy(
+                    scale = Vector2D((entity.shape as RectangleShape).width, (entity.shape as RectangleShape).height)
+                )))
+                entity.painter?.bind(shader) ?: shader.setColor(0.2f, 0.2f, 0.3f, 1f)
+                quadMesh.draw()
             }
         }
 
