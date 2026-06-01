@@ -6,6 +6,7 @@ import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.EventBus
 import org.soyuz.engine.events.RuntimeEventBus
+import org.soyuz.engine.physics.forcefields.DynamicForceField
 import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
@@ -20,7 +21,11 @@ class RuntimePhysicsSystem(
 ) : PhysicsSystem {
 
     private val bodies = mutableMapOf<String, PhysicsBody>()
+    private val dynamicFields = mutableListOf<DynamicForceField>()
 
+    override fun addDynamicField(field: DynamicForceField) {
+        dynamicFields.add(field)
+    }
     override fun registerBody(entityId: String, body: PhysicsBody) {
         bodies[entityId] = body
     }
@@ -173,6 +178,14 @@ class RuntimePhysicsSystem(
         // Phase 5: Finalize Velocities
         for ((_, body) in bodies) {
             body.integrateVelocity(dt)
+        }
+
+        // Phase 6: Update positions for dynamic force fields
+        for (field in dynamicFields) {
+            for ((entityId, _) in bodies) {
+                val entity = scene.findEntity(entityId) ?: continue
+                field.updatePosition(entityId, entity.transform.position)
+            }
         }
     }
 

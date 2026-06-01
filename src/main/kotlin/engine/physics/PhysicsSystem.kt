@@ -1,5 +1,6 @@
 package org.soyuz.engine.physics
 
+import org.soyuz.engine.physics.forcefields.DynamicForceField
 import org.soyuz.engine.scene.Scene
 
 interface PhysicsSystem {
@@ -8,4 +9,6 @@ interface PhysicsSystem {
     fun unregisterBody(entityId: String)
 
     fun step(scene: Scene, dt: Double)
+
+    fun addDynamicField(field: DynamicForceField)
 }

@@ -13,6 +13,7 @@ import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
 import org.soyuz.engine.physics.forcefields.ConstantAccelerationField
 import org.soyuz.engine.physics.forcefields.ConstantForceField
+import org.soyuz.engine.physics.forcefields.GravityField
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
 import org.soyuz.engine.render.Shader
@@ -81,6 +82,8 @@ fun main() {
     val eventBus = RuntimeEventBus()
     val physicsSystem = RuntimePhysicsSystem(collisionSystem, eventBus)
     val scene = RuntimeScene("main")
+    val gravityField = GravityField()
+    physicsSystem.addDynamicField(gravityField)
 
     eventBus.subscribe(CollisionEvent::class.java) { event ->
         println("Bump! ${event.sourceEntityId} hit ${event.otherEntityId}")
@@ -100,7 +103,7 @@ fun main() {
         )
 
         val body = PointMass(mass = mass, restitution = restitution)
-        body.addField(ConstantAccelerationField(Vector2D(0.0, 981.0)))
+        gravityField.registerBody(id, body, ball.transform.position)
         body.velocity = Vector2D(vx, vy)
 
         val collider = CircleCollider(CircleShape(radius))
