@@ -104,13 +104,13 @@ fun main() {
 
         val body = PointMass(mass = mass, restitution = restitution)
         gravityField.registerBody(id, body, ball.transform.position)
-        body.velocity = Vector2D(vx, vy)
 
         val collider = CircleCollider(CircleShape(radius))
 
         physicsSystem.registerBody(id, body)
         collisionSystem.registerCollider(id, collider)
         scene.addEntity(ball)
+        gravityField.registerBody(id, body, ball.transform.position)
     }
 
     fun createWall(id: String, x: Double, y: Double, w: Double, h: Double) {
@@ -134,8 +134,7 @@ fun main() {
     createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness*1.5)
 
 // Spawn a couple starter balls
-    makeBall(width / 3.0, height / 2.0, 200.0, -100.0, mass = 1.0, radius = 12.0)
-    makeBall(2 * width / 3.0, height / 2.0, -150.0, 50.0, mass = 2.0, radius = 18.0)
+    makeBall(width / 3.0, height / 2.0, 200.0, -100.0, mass = 10.0, radius = 12.0)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()

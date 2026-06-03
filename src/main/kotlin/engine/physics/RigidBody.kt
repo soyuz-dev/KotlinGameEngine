@@ -1,5 +1,6 @@
 package org.soyuz.engine.physics
 
+import org.soyuz.engine.physics.forcefields.ForceField
 import org.soyuz.util.Vector2D
 
 class RigidBody(
@@ -65,5 +66,13 @@ class RigidBody(
 
     fun angularDisplacement(dt: Double): Double {
         return angularVelocity * dt
+    }
+
+    override fun addField(field: ForceField) {
+        pointMass.addField(field)
+    }
+
+    override fun removeField(field: ForceField) {
+        pointMass.removeField(field)
     }
 }

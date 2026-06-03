@@ -4,13 +4,14 @@ import org.soyuz.engine.physics.PhysicsBody
 import org.soyuz.util.Vector2D
 import kotlin.collections.iterator
 
-class GravityField(private val G: Double = 500.0) : DynamicForceField {
+class GravityField(private val G: Double = 5e6) : DynamicForceField {
     private data class BodyEntry(val body: PhysicsBody, var position: Vector2D)
     private val bodies = mutableMapOf<String, BodyEntry>()
 
 
     override fun registerBody(entityId: String, body: PhysicsBody, position: Vector2D) {
         bodies[entityId] = BodyEntry(body, position)
+        body.addField(this)
     }
 
     override fun unregisterBody(entityId: String) {

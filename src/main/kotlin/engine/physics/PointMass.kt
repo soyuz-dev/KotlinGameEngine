@@ -30,8 +30,12 @@ class PointMass(
 
     private val forceFields = mutableListOf<ForceField>()
 
-    fun addField(field: ForceField) {
+    override fun addField(field: ForceField) {
         forceFields.add(field)
+    }
+
+    override fun removeField(field: ForceField) {
+        forceFields.remove(field)
     }
     override fun applyForce(force: Vector2D) {
         if (inverseMass == 0.0) return
