@@ -103,6 +103,7 @@ fun main() {
         )
 
         val body = PointMass(mass = mass, restitution = restitution)
+        //body.velocity = Vector2D(vx, vy)
         gravityField.registerBody(id, body, ball.transform.position)
 
         val collider = CircleCollider(CircleShape(radius))
@@ -134,7 +135,7 @@ fun main() {
     createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness*1.5)
 
 // Spawn a couple starter balls
-    makeBall(width / 3.0, height / 2.0, 200.0, -100.0, mass = 10.0, radius = 12.0)
+    makeBall(width / 3.0, height / 2.0, 200.0, -100.0, mass = 1.0, radius = 12.0)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
@@ -153,7 +154,6 @@ fun main() {
         physicsSystem.step(scene, dt)
 
         // Event Polling
-
         glfwPollEvents()
 
 
@@ -161,8 +161,8 @@ fun main() {
         if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             val mPos = MouseListener.getPos()
             val r = 5.0 + Math.random() * 20.0
-            val vx = (Math.random() - 0.5) * 1200.0
-            val vy = (Math.random() - 0.5) * 1200.0
+            val vx = (Math.random() - 0.5) * 120.0
+            val vy = (Math.random() - 0.5) * 120.0
             val m = 0.5 + Math.random() * 2.0
             makeBall(mPos.x, mPos.y, vx, vy, mass = m, radius = r)
             println("Total balls: ${scene.allEntities().count { it.id.startsWith("ball_") }}")  // debug
