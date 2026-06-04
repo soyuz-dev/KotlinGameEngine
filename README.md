@@ -1,4 +1,3 @@
-```markdown
 # Bump
 
 A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow where entities own their data directly — no ECS, no ceremony.
@@ -91,4 +90,3 @@ See [IDEAS.md](IDEAS.md) for the chaos board.
 ## License
 
 LGPL-3.0
-```
