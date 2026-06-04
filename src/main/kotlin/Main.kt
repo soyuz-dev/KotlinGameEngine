@@ -111,7 +111,6 @@ fun main() {
         physicsSystem.registerBody(id, body)
         collisionSystem.registerCollider(id, collider)
         scene.addEntity(ball)
-        gravityField.registerBody(id, body, ball.transform.position)
     }
 
     fun createWall(id: String, x: Double, y: Double, w: Double, h: Double) {
