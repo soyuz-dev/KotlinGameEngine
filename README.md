@@ -69,4 +69,4 @@ See [IDEAS.md](IDEAS.md) for the chaos board.
 
 ## License
 
-TBD
+LGPL-3.0
