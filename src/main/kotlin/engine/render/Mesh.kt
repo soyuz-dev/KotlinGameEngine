@@ -1,6 +1,7 @@
 package org.soyuz.engine.render
 
 import org.lwjgl.opengl.GL30.*
+import org.soyuz.util.Vector2D
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -54,6 +55,29 @@ class Mesh(vertices: FloatArray, private val mode: Int) {
                 verts[(i + 1) * 2 + 1] = (sin(angle) * 0.5).toFloat()
             }
             return Mesh(verts, GL_TRIANGLE_FAN)
+        }
+
+        fun triangle(a: Vector2D, b: Vector2D, c: Vector2D): Mesh = Mesh(
+            floatArrayOf(
+                a.x.toFloat(), a.y.toFloat(),
+                b.x.toFloat(), b.y.toFloat(),
+                c.x.toFloat(), c.y.toFloat()
+            ),
+            GL_TRIANGLES
+        )
+
+        // Or a unit equilateral triangle centered at origin:
+        fun equilateralTriangle(): Mesh {
+            val h = 0.5f
+            val w = (h / kotlin.math.sqrt(3.0)).toFloat()
+            return Mesh(
+                floatArrayOf(
+                    0f, h,
+                    -w, -h,
+                    w, -h
+                ),
+                GL_TRIANGLES
+            )
         }
     }
 }

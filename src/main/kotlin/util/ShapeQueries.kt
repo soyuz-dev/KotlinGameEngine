@@ -5,6 +5,7 @@ import org.soyuz.engine.shape.Aabb2D
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.shape.Shape2D
+import org.soyuz.engine.shape.TriangleShape
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -23,6 +24,7 @@ object ShapeQueries {
         when (shape) {
             is CircleShape -> worldAabbForCircle(shape, transform)
             is RectangleShape -> worldAabbForRectangle(shape, transform)
+            is TriangleShape -> worldAabbForTriangle(shape, transform)
         }
     /**
      * Tests a world-space [point] against a local [shape] projected by [transform].
@@ -36,6 +38,7 @@ object ShapeQueries {
                 val halfHeight = shape.height * 0.5
                 localPoint.x in -halfWidth..halfWidth && localPoint.y in -halfHeight..halfHeight
             }
+            is TriangleShape -> pointInTriangle(point, shape.a, shape.b, shape.c)
         }
     }
     private fun worldAabbForCircle(shape: CircleShape, transform: Transform): Aabb2D {
@@ -93,6 +96,33 @@ object ShapeQueries {
             maxX = maxX,
             maxY = maxY
         )
+    }
+
+    private fun worldAabbForTriangle(shape: TriangleShape, transform: Transform): Aabb2D {
+        val a = Transform.localToWorld(shape.a, transform)
+        val b = Transform.localToWorld(shape.b, transform)
+        val c = Transform.localToWorld(shape.c, transform)
+        return Aabb2D(
+            minX = minOf(a.x, b.x, c.x),
+            minY = minOf(a.y, b.y, c.y),
+            maxX = maxOf(a.x, b.x, c.x),
+            maxY = maxOf(a.y, b.y, c.y)
+        )
+    }
+
+    private fun pointInTriangle(p: Vector2D, a: Vector2D, b: Vector2D, c: Vector2D): Boolean {
+        val v0 = c - a
+        val v1 = b - a
+        val v2 = p - a
+        val dot00 = v0.dot(v0)
+        val dot01 = v0.dot(v1)
+        val dot02 = v0.dot(v2)
+        val dot11 = v1.dot(v1)
+        val dot12 = v1.dot(v2)
+        val invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01)
+        val u = (dot11 * dot02 - dot01 * dot12) * invDenom
+        val v = (dot00 * dot12 - dot01 * dot02) * invDenom
+        return u >= 0.0 && v >= 0.0 && u + v <= 1.0
     }
 
 

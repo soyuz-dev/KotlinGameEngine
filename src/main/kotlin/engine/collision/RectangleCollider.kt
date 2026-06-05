@@ -21,7 +21,7 @@ class RectangleCollider(
                 result
             }
             is RectangleCollider -> {
-                return satForRectangle(other, selfTransform, otherTransform)
+                satForRectangle(other, selfTransform, otherTransform)
             }
             else -> other.intersects(this, otherTransform, selfTransform)
         }
