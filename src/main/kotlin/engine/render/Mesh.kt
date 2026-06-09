@@ -79,5 +79,11 @@ class Mesh(vertices: FloatArray, private val mode: Int) {
                 GL_TRIANGLES
             )
         }
+
+        fun line(from: Vector2D, to: Vector2D): Mesh = Mesh(
+            floatArrayOf(from.x.toFloat(), from.y.toFloat(), to.x.toFloat(), to.y.toFloat()),
+            GL_LINES
+        )
+
     }
 }

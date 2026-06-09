@@ -7,6 +7,9 @@ import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.EventBus
 import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.forcefields.DynamicForceField
+import org.soyuz.engine.physics.joints.Joint
+import org.soyuz.engine.physics.joints.PermissiveJoint
+import org.soyuz.engine.physics.joints.StrictJoint
 import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
@@ -23,15 +26,35 @@ class RuntimePhysicsSystem(
     private val bodies = mutableMapOf<String, PhysicsBody>()
     private val dynamicFields = mutableListOf<DynamicForceField>()
 
+    private val joints = mutableListOf<Joint>()
+    private val bodyToEntity = mutableMapOf<PhysicsBody, String>()
+
+    override fun getBody(entityId: String): PhysicsBody? = bodies[entityId]
+
+    override fun addJoint(joint: Joint) {
+        joints.add(joint)
+    }
+
+    override fun removeJoint(joint: Joint) {
+        joints.remove(joint)
+    }
+
     override fun addDynamicField(field: DynamicForceField) {
         dynamicFields.add(field)
     }
+
+    override fun removeDynamicField(field: DynamicForceField) {
+        dynamicFields.remove(field)
+    }
+
     override fun registerBody(entityId: String, body: PhysicsBody) {
         bodies[entityId] = body
+        bodyToEntity[body] = entityId
     }
 
     override fun unregisterBody(entityId: String) {
-        bodies.remove(entityId)
+        val body = bodies.remove(entityId)
+        if(body != null) bodyToEntity.remove(body)
     }
 
     override fun step(scene: Scene, dt: Double) {
@@ -42,6 +65,15 @@ class RuntimePhysicsSystem(
             if (body is PointMass) {
                 val entity = scene.findEntity(entityId) ?: continue
                 body.accumulateForces(entity.transform.position)
+            }
+        }
+
+        // Phase 1.5: Accumulate forces from permissive joints
+        for (joint in joints) {
+            if (joint is PermissiveJoint) {
+                val entityA = scene.findEntity(bodyToEntity[joint.bodyA]!!) ?: continue
+                val entityB = scene.findEntity(bodyToEntity[joint.bodyB]!!) ?: continue
+                joint.accumulateForces(entityA.transform.position, entityB.transform.position)
             }
         }
 
@@ -173,6 +205,23 @@ class RuntimePhysicsSystem(
 
             entityA.transform = entityA.transform.translated(-correction * invMassA)
             entityB.transform = entityB.transform.translated(correction * invMassB)
+        }
+
+        // Phase 4.5: Solve strict joints
+        for (iter in 0 until 5) { // multiple iterations for convergence
+            for (joint in joints) {
+                if (joint is StrictJoint) {
+                    val entityA = scene.findEntity(bodyToEntity[joint.bodyA]!!) ?: continue
+                    val entityB = scene.findEntity(bodyToEntity[joint.bodyB]!!) ?: continue
+                    val (newPosA, newPosB) = joint.solvePositions(
+                        entityA.transform.position,
+                        entityB.transform.position,
+                        dt
+                    )
+                    entityA.transform = entityA.transform.copy(position = newPosA)
+                    entityB.transform = entityB.transform.copy(position = newPosB)
+                }
+            }
         }
 
         // Phase 5: Finalize Velocities

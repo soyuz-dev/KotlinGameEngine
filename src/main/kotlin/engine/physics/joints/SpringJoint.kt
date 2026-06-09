@@ -3,7 +3,7 @@ package org.soyuz.engine.physics.joints
 import org.soyuz.engine.physics.PhysicsBody
 import org.soyuz.util.Vector2D
 
-class RopeJoint(
+class SpringJoint(
     override val bodyA: PhysicsBody,
     override val bodyB: PhysicsBody,
     val restLength: Double,
