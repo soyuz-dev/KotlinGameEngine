@@ -26,7 +26,10 @@ import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.BufferUtils
+import org.soyuz.engine.physics.joints.RopeJoint
+import org.soyuz.engine.physics.joints.SpringJoint
 import org.soyuz.util.Transform
+import javax.swing.Spring
 
 fun main() {
     if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
@@ -106,6 +109,7 @@ fun main() {
         ball.painter = SolidColor(Math.random(), Math.random(), Math.random(), 1.0)
         val body = PointMass(mass = mass, restitution = restitution)
         body.addField(gravity)
+        body.velocity = Vector2D(vx, vy)
         val collider = CircleCollider(CircleShape(radius))
         physicsSystem.registerBody(id, body)
         collisionSystem.registerCollider(id, collider)
@@ -130,7 +134,7 @@ fun main() {
     createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness * 1.5)
     createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness * 1.5)
 
-    // Double pendulum setup
+
     val anchor = DefaultGameEntity("anchor")
     anchor.goto(Vector2D(width / 2.0, height / 3.0))
     anchor.shape = CircleShape(6.0)
@@ -144,18 +148,8 @@ fun main() {
     makeBall(width / 2.0, height / 2.0, 200.0, 0.0, mass = 1.0, radius = 10.0)
     val bob1Body = physicsSystem.getBody("ball_0")!!
 
-    makeBall(width / 2.0 + 150.0, height / 2.0, -200.0, 0.0, mass = 1.0, radius = 10.0)
-    val bob2Body = physicsSystem.getBody("ball_1")!!
-
-    makeBall(width/2.0 + 200.0, height / 2.0, -250.0, 0.0, mass = 1.0, radius = 10.0)
-    val bob3Body = physicsSystem.getBody("ball_2")!!
-
-    val rod1 = RodJoint(anchorBody, bob1Body, restLength = 150.0)
-    val rod2 = RodJoint(bob1Body, bob2Body, restLength = 200.0)
-    val rod3 = RodJoint(bob2Body, bob3Body, restLength = 50.0)
+    val rod1 = RopeJoint(anchorBody, bob1Body, maxLength = 550.0)
     physicsSystem.addJoint(rod1)
-    physicsSystem.addJoint(rod2)
-    physicsSystem.addJoint(rod3)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
@@ -181,16 +175,10 @@ fun main() {
         // Draw rods
         val anchorPos = scene.findEntity("anchor")?.transform?.position ?: Vector2D.ZERO
         val bob0Pos = scene.findEntity("ball_0")?.transform?.position ?: Vector2D.ZERO
-        val bob1Pos = scene.findEntity("ball_1")?.transform?.position ?: Vector2D.ZERO
-        val bob2Pos = scene.findEntity("ball_2")?.transform?.position ?: Vector2D.ZERO
 
         val lineVerts = floatArrayOf(
             anchorPos.x.toFloat(), anchorPos.y.toFloat(),
             bob0Pos.x.toFloat(), bob0Pos.y.toFloat(),
-            bob0Pos.x.toFloat(), bob0Pos.y.toFloat(),
-            bob1Pos.x.toFloat(), bob1Pos.y.toFloat(),
-            bob1Pos.x.toFloat(), bob1Pos.y.toFloat(),
-            bob2Pos.x.toFloat(), bob2Pos.y.toFloat()
         )
 
         glBindBuffer(GL_ARRAY_BUFFER, lineVbo)
