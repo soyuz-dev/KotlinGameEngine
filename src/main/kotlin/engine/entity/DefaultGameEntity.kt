@@ -44,4 +44,8 @@ class DefaultGameEntity(
     fun goto(position: Vector2D) {
         this.transform = this.transform.goto(position)
     }
+
+    fun turnTo(rotationRadians: Double) {
+        this.transform = this.transform.copy(rotationRadians = rotationRadians)
+    }
 }
