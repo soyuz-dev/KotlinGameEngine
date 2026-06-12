@@ -1,23 +1,6 @@
 package org.soyuz.engine.render
 
-import org.lwjgl.opengl.GL20.GL_COMPILE_STATUS
-import org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER
-import org.lwjgl.opengl.GL20.GL_LINK_STATUS
-import org.lwjgl.opengl.GL20.GL_VERTEX_SHADER
-import org.lwjgl.opengl.GL20.glAttachShader
-import org.lwjgl.opengl.GL20.glCompileShader
-import org.lwjgl.opengl.GL20.glCreateProgram
-import org.lwjgl.opengl.GL20.glCreateShader
-import org.lwjgl.opengl.GL20.glDeleteProgram
-import org.lwjgl.opengl.GL20.glDeleteShader
-import org.lwjgl.opengl.GL20.glGetProgrami
-import org.lwjgl.opengl.GL20.glGetShaderi
-import org.lwjgl.opengl.GL20.glGetUniformLocation
-import org.lwjgl.opengl.GL20.glLinkProgram
-import org.lwjgl.opengl.GL20.glShaderSource
-import org.lwjgl.opengl.GL20.glUniform4f
-import org.lwjgl.opengl.GL20.glUniformMatrix4fv
-import org.lwjgl.opengl.GL20.glUseProgram
+import org.lwjgl.opengl.GL20.*
 import java.io.FileNotFoundException
 
 class Shader (
@@ -28,7 +11,10 @@ class Shader (
     private val colorLoc: Int
     private val projLoc: Int
     private val modelLoc: Int
+    private val textureLoc: Int
+    private val useTextureLoc: Int
     private val program : Int
+
     init {
         val vertexHandle = glCreateShader(GL_VERTEX_SHADER)
         glShaderSource(vertexHandle, vertex)
@@ -53,6 +39,8 @@ class Shader (
         colorLoc = glGetUniformLocation(program, "uColor")
         projLoc = glGetUniformLocation(program, "uProjection")
         modelLoc = glGetUniformLocation(program, "uModel")
+        textureLoc = glGetUniformLocation(program, "uTexture")
+        useTextureLoc = glGetUniformLocation(program, "uUseTexture")
     }
 
     fun setColor(r: Float, g: Float, b: Float, a: Float) {
@@ -91,5 +79,17 @@ class Shader (
     fun setUniform4f(name:String, r: Float, g: Float, b: Float, a: Float) {
         val location = glGetUniformLocation(program, name)
         glUniform4f(location, r, g, b, a)
+    }
+
+    fun setInt(location: Int, value: Int) {
+        glUniform1i(location, value)
+    }
+
+    fun setTexture(slot: Int) {
+        glUniform1i(textureLoc, slot)
+    }
+
+    fun setUseTexture(use: Boolean) {
+        glUniform1i(useTextureLoc, if (use) 1 else 0)
     }
 }

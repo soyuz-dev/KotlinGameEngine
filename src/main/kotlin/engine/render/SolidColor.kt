@@ -7,6 +7,7 @@ class SolidColor(
     val a:Double
 ) : Painter {
     override fun bind(shader: Shader) {
+        shader.setUseTexture(false)
         shader.setColor(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
     }
 }

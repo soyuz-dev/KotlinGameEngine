@@ -5,12 +5,19 @@ import org.soyuz.util.Vector2D
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Mesh(vertices: FloatArray, private val mode: Int) {
+class Mesh(
+    vertices: FloatArray,
+    private val mode: Int,
+    private val hasUVs: Boolean = false
+) {
     private val vao: Int
     private val vbo: Int
-    private val vertexCount: Int = vertices.size / 2
+    private val vertexCount: Int
+    private val stride: Int = if (hasUVs) 4 * 4 else 2 * 4 // 4 floats vs 2 floats, each 4 bytes
 
     init {
+        vertexCount = vertices.size / (if (hasUVs) 4 else 2)
+
         vao = glGenVertexArrays()
         glBindVertexArray(vao)
 
@@ -18,8 +25,15 @@ class Mesh(vertices: FloatArray, private val mode: Int) {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
+        // Position attribute (location 0)
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, 0)
         glEnableVertexAttribArray(0)
+
+        if (hasUVs) {
+            // UV attribute (location 1)
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, 2 * 4)
+            glEnableVertexAttribArray(1)
+        }
 
         glBindVertexArray(0)
     }
@@ -38,23 +52,25 @@ class Mesh(vertices: FloatArray, private val mode: Int) {
     companion object {
         fun quad(): Mesh = Mesh(
             floatArrayOf(
-                -0.5f, -0.5f,
-                0.5f, -0.5f,
-                -0.5f,  0.5f,
-                0.5f,  0.5f
+                // positions     // uvs
+                -0.5f, -0.5f,    0f, 0f,
+                0.5f, -0.5f,    1f, 0f,
+                -0.5f,  0.5f,    0f, 1f,
+                0.5f,  0.5f,    1f, 1f
             ),
-            GL_TRIANGLE_STRIP
+            GL_TRIANGLE_STRIP,
+            hasUVs = true
         )
 
         fun circle(segments: Int = 32): Mesh {
-            val verts = FloatArray((segments + 2) * 2)
-            verts[0] = 0f; verts[1] = 0f // center for fan
+            val verts = FloatArray((segments + 2) * 2) // no UVs for circles
+            verts[0] = 0f; verts[1] = 0f
             for (i in 0..segments) {
                 val angle = 2.0 * Math.PI * i / segments
                 verts[(i + 1) * 2]     = (cos(angle) * 0.5).toFloat()
                 verts[(i + 1) * 2 + 1] = (sin(angle) * 0.5).toFloat()
             }
-            return Mesh(verts, GL_TRIANGLE_FAN)
+            return Mesh(verts, GL_TRIANGLE_FAN, hasUVs = false)
         }
 
         fun triangle(a: Vector2D, b: Vector2D, c: Vector2D): Mesh = Mesh(
@@ -63,27 +79,14 @@ class Mesh(vertices: FloatArray, private val mode: Int) {
                 b.x.toFloat(), b.y.toFloat(),
                 c.x.toFloat(), c.y.toFloat()
             ),
-            GL_TRIANGLES
+            GL_TRIANGLES,
+            hasUVs = false
         )
-
-        // Or a unit equilateral triangle centered at origin:
-        fun equilateralTriangle(): Mesh {
-            val h = 0.5f
-            val w = (h / kotlin.math.sqrt(3.0)).toFloat()
-            return Mesh(
-                floatArrayOf(
-                    0f, h,
-                    -w, -h,
-                    w, -h
-                ),
-                GL_TRIANGLES
-            )
-        }
 
         fun line(from: Vector2D, to: Vector2D): Mesh = Mesh(
             floatArrayOf(from.x.toFloat(), from.y.toFloat(), to.x.toFloat(), to.y.toFloat()),
-            GL_LINES
+            GL_LINES,
+            hasUVs = false
         )
-
     }
 }
