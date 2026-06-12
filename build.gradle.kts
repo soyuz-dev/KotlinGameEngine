@@ -31,6 +31,9 @@ dependencies {
     implementation("org.lwjgl:lwjgl-glfw::$lwjglNatives")
     implementation("org.lwjgl:lwjgl-opengl::$lwjglNatives")
     implementation("org.lwjgl:lwjgl-stb::$lwjglNatives")
+
+
+
 }
 
 kotlin {
