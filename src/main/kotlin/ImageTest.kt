@@ -97,7 +97,7 @@ fun main() {
     // Add a textured entity
     val texturedBox = DefaultGameEntity("textured_box")
     texturedBox.goto(Vector2D(width / 2.0, height / 2.0))
-    texturedBox.shape = RectangleShape(328.0, 128.0)
+    texturedBox.shape = RectangleShape(128.0, 128.0)
     texturedBox.painter = ImagePainter(Assets.texture("cat")) // needs image in resources/textures/
     scene.addEntity(texturedBox)
 
@@ -105,7 +105,7 @@ fun main() {
     val texturedBox1 = DefaultGameEntity("textured_box1")
     texturedBox1.goto(Vector2D(width / 1.5, height / 3.0))
     texturedBox1.turnTo(1.0)
-    texturedBox1.shape = RectangleShape(128.0, 328.0)
+    texturedBox1.shape = RectangleShape(128.0, 128.0)
     texturedBox1.painter = ImagePainter(Assets.texture("dog")) // needs image in resources/textures/
     scene.addEntity(texturedBox1)
 
