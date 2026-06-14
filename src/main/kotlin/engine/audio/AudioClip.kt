@@ -1,7 +1,10 @@
 package org.soyuz.engine.audio
 
 import org.lwjgl.openal.AL11
+import org.lwjgl.stb.STBVorbis
+import org.lwjgl.stb.STBVorbisInfo
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 
 class AudioClip private constructor(val buffer: Int, val format: Int, val sampleRate: Int) {
@@ -10,40 +13,37 @@ class AudioClip private constructor(val buffer: Int, val format: Int, val sample
             val stream = AudioClip::class.java.getResourceAsStream(path)
                 ?: throw IllegalArgumentException("Audio not found: $path")
             val bytes = stream.readAllBytes()
-            val buffer = ByteBuffer.allocateDirect(bytes.size)
-            buffer.put(bytes)
-            buffer.flip()
+            val rawBuffer = ByteBuffer.allocateDirect(bytes.size)
+            rawBuffer.put(bytes)
+            rawBuffer.flip()
 
-            //RIFF
-            if (buffer.getInt() != 0x52494646) error("Is your audio clip in WAV format?")
-            buffer.getInt()
+            val error = IntArray(1)
+            val decoder = STBVorbis.stb_vorbis_open_memory(rawBuffer, error, null)
+                ?: throw IllegalArgumentException("Failed to decode OGG: $path, error: ${error[0]}")
 
-            //WAVE
-            if (buffer.getInt() != 0x57415645) error("Is your audio clip in WAV format?")
+            val info = STBVorbisInfo.malloc()
+            STBVorbis.stb_vorbis_get_info(decoder, info)
 
-            //fmt
-            if (buffer.getInt() != 0x666d7420) error("Is your audio clip in WAV format?")
+            val channels = info.channels()
+            val sampleRate = info.sample_rate()
 
-            val chunkSize = buffer.getInt()
-            val audioFormat = buffer.getShort()
-            val audioChannels = buffer.getShort()
-            val sampleRate = buffer.getInt()
+            val lengthPerChannel = STBVorbis.stb_vorbis_stream_length_in_samples(decoder)
+            val pcm = ShortArray(lengthPerChannel * channels)
+            val samplesDecodedPerChannel = STBVorbis.stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm)
 
-            buffer.getInt()
-            buffer.getShort()
-            if (buffer.getShort().toInt() != 16) error("Is your audio clip in WAV format?")
+            STBVorbis.stb_vorbis_close(decoder)
+            info.free()
 
-            // Skip any extra chunks until "data"
-            while (buffer.getInt() != 0x64617461) {
-                val skipSize = buffer.getInt()
-                buffer.position(buffer.position() + skipSize)
-            }
-            val dataSize = buffer.getInt()
-
-            // Create OpenAL buffer
             val alBuffer = AL11.alGenBuffers()
-            val format = if (audioChannels == 1.toShort()) AL11.AL_FORMAT_MONO16 else AL11.AL_FORMAT_STEREO16
-            AL11.alBufferData(alBuffer, format, buffer, sampleRate)
+            val format = if (channels == 1) AL11.AL_FORMAT_MONO16 else AL11.AL_FORMAT_STEREO16
+
+            val totalShorts = samplesDecodedPerChannel * channels
+            val pcmBuffer = ByteBuffer.allocateDirect(totalShorts * 2)
+            pcmBuffer.order(ByteOrder.LITTLE_ENDIAN)
+            pcmBuffer.asShortBuffer().put(pcm, 0, totalShorts)
+            pcmBuffer.rewind()  // ← Critical
+
+            AL11.alBufferData(alBuffer, format, pcmBuffer, sampleRate)
 
             return AudioClip(alBuffer, format, sampleRate)
         }
