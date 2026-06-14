@@ -26,6 +26,8 @@ import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.BufferUtils
+import org.soyuz.engine.audio.AudioSource
+import org.soyuz.engine.audio.AudioSystem
 import org.soyuz.engine.physics.joints.RopeJoint
 import org.soyuz.engine.physics.joints.SpringJoint
 import org.soyuz.engine.render.image.ImagePainter
@@ -51,6 +53,9 @@ fun main() {
     glfwSwapInterval(0)
 
     println("OpenGL ${glGetString(GL_VERSION)}")
+
+    // --- Audio setup ---
+    AudioSystem.init()
 
     // --- Renderer setup ---
     val shader = Shader.fromResource("/shaders/default.vert", "/shaders/default.frag")
@@ -123,11 +128,23 @@ fun main() {
 
         glfwPollEvents()
 
+        AudioSystem.update(
+            listenerX = 0f,  // or camera position if you had one
+            listenerY = 0f,
+            vX = 0f,
+            vY = 0f
+        )
+
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT)
 
         shader.bind()
         shader.setProjection(camera.getProjection())
+
+        if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            val source = AudioSource();
+            source.play(Assets.audio("meow"))
+        }
 
         // Draw all entities
         for (entity in scene.allEntities()) {
@@ -158,6 +175,8 @@ fun main() {
         MouseListener.endFrame()
     }
 
+    shader.cleanup()
+    AudioSystem.cleanup()
     glDeleteVertexArrays(lineVao)
     glDeleteBuffers(lineVbo)
     glfwDestroyWindow(window)
