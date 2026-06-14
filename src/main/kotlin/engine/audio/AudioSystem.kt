@@ -31,8 +31,6 @@ object AudioSystem {
         AL11.alListenerfv(AL11.AL_ORIENTATION, floatArrayOf(0f, 0f, -1f, 0f, 1f, 0f))
     }
 
-
-
     fun cleanup() {
         ALC11.alcDestroyContext(context)
         ALC11.alcCloseDevice(device)
