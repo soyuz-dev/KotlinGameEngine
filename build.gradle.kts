@@ -15,7 +15,6 @@ application {
 }
 
 val lwjglV = "3.3.3"
-val jomlV ="1.10.5"
 val lwjglNatives = "natives-windows"
 
 dependencies {
@@ -25,7 +24,6 @@ dependencies {
     implementation("org.lwjgl:lwjgl-glfw:$lwjglV")
     implementation("org.lwjgl:lwjgl-opengl:$lwjglV")
     implementation("org.lwjgl:lwjgl-stb:$lwjglV")
-    implementation("org.joml:joml:$jomlV")
 
     implementation("org.lwjgl:lwjgl::$lwjglNatives")
     implementation("org.lwjgl:lwjgl-glfw::$lwjglNatives")
