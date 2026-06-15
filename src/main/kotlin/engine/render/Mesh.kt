@@ -44,6 +44,11 @@ class Mesh(
         glBindVertexArray(0)
     }
 
+    fun updateVertices(vertices: FloatArray) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices)
+    }
+
     fun cleanup() {
         glDeleteBuffers(vbo)
         glDeleteVertexArrays(vao)
