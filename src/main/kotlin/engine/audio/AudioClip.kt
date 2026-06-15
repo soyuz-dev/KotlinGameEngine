@@ -48,4 +48,8 @@ class AudioClip private constructor(val buffer: Int, val format: Int, val sample
             return AudioClip(alBuffer, format, sampleRate)
         }
     }
+
+    fun cleanup() {
+        AL11.alDeleteBuffers(buffer)
+    }
 }

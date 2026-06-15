@@ -22,7 +22,6 @@ object Assets {
     }
 
     fun audio(name: String): AudioClip {
-
         return audio.getOrPut(name) {
             AudioClip.fromResource("/audio/$name.ogg")
         }
@@ -31,7 +30,7 @@ object Assets {
     fun cleanup() {
         shaders.values.forEach { it.cleanup() }
         textures.values.forEach { it.cleanup() }
-        //audio.values.forEach { it.cleanup() }
-        shaders.clear(); textures.clear(); //audio.clear()
+        audio.values.forEach { it.cleanup() }
+        shaders.clear(); textures.clear(); audio.clear()
     }
 }
