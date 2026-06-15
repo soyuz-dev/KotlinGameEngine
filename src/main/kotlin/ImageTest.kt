@@ -3,37 +3,23 @@ package org.soyuz
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil.NULL
-import org.soyuz.engine.collision.CircleCollider
-import org.soyuz.engine.collision.RectangleCollider
-import org.soyuz.engine.collision.RuntimeCollisionSystem
+import org.soyuz.engine.audio.AudioSource
+import org.soyuz.engine.audio.AudioSystem
 import org.soyuz.engine.entity.DefaultGameEntity
-import org.soyuz.engine.events.CollisionEvent
-import org.soyuz.engine.events.RuntimeEventBus
-import org.soyuz.engine.physics.*
-import org.soyuz.engine.physics.forcefields.ConstantForceField
-import org.soyuz.engine.physics.joints.RodJoint
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
 import org.soyuz.engine.render.Shader
-import org.soyuz.engine.render.SolidColor
+import org.soyuz.engine.render.image.ImagePainter
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
+import org.soyuz.util.Assets
 import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.BufferUtils
-import org.soyuz.engine.audio.AudioSource
-import org.soyuz.engine.audio.AudioSystem
-import org.soyuz.engine.physics.joints.RopeJoint
-import org.soyuz.engine.physics.joints.SpringJoint
-import org.soyuz.engine.render.image.ImagePainter
-import org.soyuz.util.Assets
-import org.soyuz.util.Transform
-import javax.swing.Spring
 
 fun main() {
     if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
@@ -100,19 +86,15 @@ fun main() {
     val scene = RuntimeScene("main")
 
     // Add a textured entity
-    val texturedBox = DefaultGameEntity("textured_box")
-    texturedBox.goto(Vector2D(width / 2.0, height / 2.0))
-    texturedBox.shape = RectangleShape(128.0, 128.0)
-    texturedBox.painter = ImagePainter(Assets.texture("cat")) // needs image in resources/textures/
-    scene.addEntity(texturedBox)
-
 
     val texturedBox1 = DefaultGameEntity("textured_box1")
     texturedBox1.goto(Vector2D(width / 1.5, height / 3.0))
     texturedBox1.turnTo(1.0)
     texturedBox1.shape = RectangleShape(128.0, 128.0)
-    texturedBox1.painter = ImagePainter(Assets.texture("dog")) // needs image in resources/textures/
+    texturedBox1.painter = ImagePainter(Assets.texture("cat")) // needs image in resources/textures/
     scene.addEntity(texturedBox1)
+
+    var growTimer = 0.0
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
@@ -140,6 +122,22 @@ fun main() {
 
         shader.bind()
         shader.setProjection(camera.getProjection())
+
+        growTimer += dt
+
+        val w = 5.0 + growTimer
+        val h = 5.0 + growTimer
+
+        texturedBox1.shape = RectangleShape(w, h)
+
+        val halfW = (w / 2).toFloat()
+        val halfH = (h / 2).toFloat()
+        quadMesh.updateVertices(floatArrayOf(
+            -halfW, -halfH,  0f, 0f,
+            halfW, -halfH,  1f, 0f,
+            -halfW,  halfH,  0f, 1f,
+            halfW,  halfH,  1f, 1f
+        ))
 
         if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             val source = AudioSource();
@@ -175,8 +173,8 @@ fun main() {
         MouseListener.endFrame()
     }
 
-    shader.cleanup()
     AudioSystem.cleanup()
+    Assets.cleanup()
     glDeleteVertexArrays(lineVao)
     glDeleteBuffers(lineVbo)
     glfwDestroyWindow(window)
