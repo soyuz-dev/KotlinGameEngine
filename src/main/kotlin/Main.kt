@@ -3,6 +3,7 @@ package org.soyuz
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil.NULL
 import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RectangleCollider
@@ -10,26 +11,22 @@ import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.RuntimeEventBus
-import org.soyuz.engine.physics.*
+import org.soyuz.engine.physics.PointMass
+import org.soyuz.engine.physics.RuntimePhysicsSystem
 import org.soyuz.engine.physics.forcefields.ConstantForceField
-import org.soyuz.engine.physics.joints.RodJoint
+import org.soyuz.engine.physics.joints.RopeJoint
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
-import org.soyuz.engine.render.Shader
 import org.soyuz.engine.render.SolidColor
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
+import org.soyuz.util.Assets
 import org.soyuz.util.MathUtil
-import org.soyuz.util.Vector2D
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.BufferUtils
-import org.soyuz.engine.physics.joints.RopeJoint
-import org.soyuz.engine.physics.joints.SpringJoint
 import org.soyuz.util.Transform
-import javax.swing.Spring
+import org.soyuz.util.Vector2D
 
 fun main() {
     if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
@@ -51,7 +48,7 @@ fun main() {
     println("OpenGL ${glGetString(GL_VERSION)}")
 
     // --- Renderer setup ---
-    val shader = Shader.fromResource("/shaders/default.vert", "/shaders/default.frag")
+    val shader = Assets.shader("default")
     val camera = Camera()
     camera.setOrtho(width.toFloat(), height.toFloat())
     val quadMesh = Mesh.quad()
