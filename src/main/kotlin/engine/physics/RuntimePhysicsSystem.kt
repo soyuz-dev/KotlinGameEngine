@@ -66,6 +66,10 @@ class RuntimePhysicsSystem(
                 val entity = scene.findEntity(entityId) ?: continue
                 body.accumulateForces(entity.transform.position)
             }
+            if (body is RigidBody) {
+                val entity = scene.findEntity(entityId) ?: continue
+                body.accumulateForces(entity.transform.position)
+            }
         }
 
         // Phase 1.5: Accumulate forces from permissive joints
@@ -159,8 +163,22 @@ class RuntimePhysicsSystem(
                     }
                 }
                 entity.transform = entity.transform.copy(position = currentPos)
+                // Update rotation for RigidBody
+                if (body is RigidBody) {
+                    entity.transform = entity.transform.copy(
+                        position = currentPos,
+                        rotationRadians = entity.transform.rotationRadians + body.angularVelocity * dt
+                    )
+                }
             } else {
-                entity.transform = entity.transform.translated(displacement)
+                if (body is RigidBody) {
+                    entity.transform = entity.transform.copy(
+                        position = entity.transform.position + displacement,
+                        rotationRadians = entity.transform.rotationRadians + body.angularVelocity * dt
+                    )
+                } else {
+                    entity.transform = entity.transform.translated(displacement)
+                }
             }
         }
         // Phase 4: Discrete Penetration Pass (Handles shallow resting contact overlaps safely)
@@ -191,11 +209,73 @@ class RuntimePhysicsSystem(
 
             val approachSpeed = abs(vAlongNormal)
             val e = if (approachSpeed < 30.0) 0.0 else minOf(bodyA.restitution, bodyB.restitution)
-            val j = -(1.0 + e) * vAlongNormal / (invMassA + invMassB)
+
+
+            val rA = contact.point - entityA.transform.position
+            val rB = contact.point - entityB.transform.position
+
+            val rACrossN = rA.cross(normal)
+            val rBCrossN = rB.cross(normal)
+
+
+            val invMassEffectiveA = invMassA +
+                    if (bodyA is RigidBody) {
+                        (rACrossN * rACrossN) * bodyA.inverseInertia
+                    } else {
+                        0.0
+                    }
+            val invMassEffectiveB = invMassB +
+                    if (bodyB is RigidBody) {
+                        (rBCrossN * rBCrossN) * bodyB.inverseInertia
+                    } else {
+                        0.0
+                    }
+
+            val j = -(1.0 + e) * vAlongNormal / (invMassEffectiveA + invMassEffectiveB)
             val impulse = normal * j
 
             bodyA.applyImpulse(-impulse, contact.point - entityA.transform.position)
             bodyB.applyImpulse(impulse, contact.point - entityB.transform.position)
+
+            // NEW: Friction impulse
+            val tangent = Vector2D(-normal.y, normal.x)  // perpendicular to normal
+
+
+            //NOTE: The rotational part only applies to rigidbodies.
+
+            // Include rotational velocity: v_contact = v_linear + ω × r
+            val vA = bodyA.velocity + if (bodyA is RigidBody) {
+                Vector2D(-bodyA.angularVelocity * rA.y, bodyA.angularVelocity * rA.x)
+            } else {
+                Vector2D.ZERO
+            }
+            val vB = bodyB.velocity + if (bodyB is RigidBody) {
+                Vector2D(-bodyB.angularVelocity * rB.y, bodyB.angularVelocity * rB.x)
+            } else {
+                Vector2D.ZERO
+            }
+            val relVelAtContact = vB - vA
+
+            val vAlongTangent = relVelAtContact.dot(tangent)
+
+            if (kotlin.math.abs(vAlongTangent) > 1e-5) {
+                val rACrossT = rA.cross(tangent)
+                val rBCrossT = rB.cross(tangent)
+
+                val invMassEffectiveA_T = invMassA + (rACrossT * rACrossT) *
+                        if (bodyA is RigidBody) bodyA.inverseInertia else 0.0
+                val invMassEffectiveB_T = invMassB + (rBCrossT * rBCrossT) *
+                        if (bodyB is RigidBody) bodyB.inverseInertia else 0.0
+
+                val frictionCoeff = 0.5  // tune: higher = more friction
+                val frictionMagnitude = kotlin.math.min(frictionCoeff * kotlin.math.abs(j),
+                    kotlin.math.abs(vAlongTangent) / (invMassEffectiveA_T + invMassEffectiveB_T))
+                val frictionImpulse = tangent * -kotlin.math.sign(vAlongTangent) * frictionMagnitude
+                println("DEBUG FRICTION: entity=${contact.entityA}, vAlongTangent=$vAlongTangent, j=$j, frictionMag=$frictionMagnitude")
+
+                bodyA.applyImpulse(-frictionImpulse, contact.point - entityA.transform.position)
+                bodyB.applyImpulse(frictionImpulse, contact.point - entityB.transform.position)
+            }
 
             // Positional correction to counter positional drifting/sinking
             val slop = 0.01
