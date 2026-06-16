@@ -11,13 +11,13 @@ import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.RuntimeEventBus
-import org.soyuz.engine.physics.PointMass
-import org.soyuz.engine.physics.RuntimePhysicsSystem
+import org.soyuz.engine.physics.*
+import org.soyuz.engine.physics.forcefields.ConstantAccelerationField
 import org.soyuz.engine.physics.forcefields.ConstantForceField
-import org.soyuz.engine.physics.joints.RopeJoint
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
 import org.soyuz.engine.render.SolidColor
+import org.soyuz.engine.render.image.ImagePainter
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
@@ -54,16 +54,6 @@ fun main() {
     val quadMesh = Mesh.quad()
     val circleMesh = Mesh.circle(32)
 
-    // Line mesh for rods (VAO/VBO that we update each frame)
-    val lineVao = glGenVertexArrays()
-    val lineVbo = glGenBuffers()
-    glBindVertexArray(lineVao)
-    glBindBuffer(GL_ARRAY_BUFFER, lineVbo)
-    glBufferData(GL_ARRAY_BUFFER, 100 * 2 * 4, GL_DYNAMIC_DRAW) // 4 vertices * 2 floats * 4 bytes
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
-    glEnableVertexAttribArray(0)
-    glBindVertexArray(0)
-
     // --- Framebuffer size callback ---
     glfwSetFramebufferSizeCallback(window) { _, w, h ->
         width = w
@@ -91,15 +81,12 @@ fun main() {
     val eventBus = RuntimeEventBus()
     val physicsSystem = RuntimePhysicsSystem(collisionSystem, eventBus)
     val scene = RuntimeScene("main")
-    val gravity = ConstantForceField(Vector2D(0.0, 981.0))
+    val gravity = ConstantAccelerationField(Vector2D(0.0, 981.0))
 
-    eventBus.subscribe(CollisionEvent::class.java) { event ->
-        println("Bump! ${event.sourceEntityId} hit ${event.otherEntityId}")
-    }
-    var ballCount = 0
+    var entityCount = 0
 
     fun makeBall(x: Double, y: Double, vx: Double, vy: Double, mass: Double = 1.0, radius: Double = 10.0, restitution: Double = 0.8) {
-        val id = "ball_${ballCount++}"
+        val id = "ball_${entityCount++}"
         val ball = DefaultGameEntity(id)
         ball.goto(position = Vector2D(x, y))
         ball.shape = CircleShape(radius)
@@ -113,12 +100,30 @@ fun main() {
         scene.addEntity(ball)
     }
 
+    fun makeBrick(x: Double, y: Double, vx: Double, vy: Double, w: Double = 40.0, h: Double = 30.0, mass: Double = 1.0, angVel: Double = 0.0, restitution: Double = 0.5) {
+        val id = "brick_${entityCount++}"
+        val brick = DefaultGameEntity(id)
+        brick.goto(position = Vector2D(x, y))
+        brick.shape = RectangleShape(w, h)
+        brick.painter = SolidColor(0.8, 0.4, 0.1, 1.0) // orange-brown brick color
+
+        val body = RigidBody(mass = mass, restitution = restitution, friction = 0.4, width = w, height = h)
+        body.addField(gravity)
+        body.velocity = Vector2D(vx, vy)
+        body.angularVelocity = angVel
+
+        val collider = RectangleCollider(RectangleShape(w, h))
+        physicsSystem.registerBody(id, body)
+        collisionSystem.registerCollider(id, collider)
+        scene.addEntity(brick)
+    }
+
     fun createWall(id: String, x: Double, y: Double, w: Double, h: Double) {
         val wall = DefaultGameEntity(id)
         wall.goto(Vector2D(x, y))
         wall.shape = RectangleShape(w, h)
         wall.painter = SolidColor(0.2, 0.2, 0.3, 1.0)
-        val wallBody = PointMass(mass = 0.0, restitution = 1.0)
+        val wallBody = PointMass(mass = 0.0, restitution = 0.6)
         val wallCollider = RectangleCollider(RectangleShape(w, h))
         physicsSystem.registerBody(id, wallBody)
         collisionSystem.registerCollider(id, wallCollider)
@@ -131,22 +136,11 @@ fun main() {
     createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness * 1.5)
     createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness * 1.5)
 
+    // Spawn some bricks with spin
 
-    val anchor = DefaultGameEntity("anchor")
-    anchor.goto(Vector2D(width / 2.0, height / 3.0))
-    anchor.shape = CircleShape(6.0)
-    anchor.painter = SolidColor(1.0, 1.0, 1.0, 1.0)
-    val anchorBody = PointMass(mass = 0.0)
-    val anchorCollider = CircleCollider(CircleShape(6.0))
-    physicsSystem.registerBody("anchor", anchorBody)
-    collisionSystem.registerCollider("anchor", anchorCollider)
-    scene.addEntity(anchor)
-
-    makeBall(width / 2.0, height / 2.0, 200.0, 0.0, mass = 1.0, radius = 10.0)
-    val bob1Body = physicsSystem.getBody("ball_0")!!
-
-    val rod1 = RopeJoint(anchorBody, bob1Body, maxLength = 550.0)
-    physicsSystem.addJoint(rod1)
+    // Spawn some balls for chaos
+    makeBall(width / 3.0, height / 2.0, 200.0, -500.0, mass = 0.5, radius = 8.0)
+    makeBall(2 * width / 3.0, height / 2.0, -200.0, -300.0, mass = 0.5, radius = 8.0)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
@@ -163,27 +157,29 @@ fun main() {
         physicsSystem.step(scene, dt)
         glfwPollEvents()
 
+        // Spawn on click
+        if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            val mPos = MouseListener.getPos()
+            if (Math.random() < 0.5) {
+                val r = 5.0 + Math.random() * 15.0
+                val vx = (Math.random() - 0.5) * 600.0
+                val vy = (Math.random() - 0.5) * 600.0 - 300.0
+                makeBall(mPos.x, mPos.y, vx, vy, mass = 0.5 + Math.random() * 2.0, radius = r)
+            } else {
+                val w = 20.0 + Math.random() * 60.0
+                val h = 15.0 + Math.random() * 40.0
+                val vx = (Math.random() - 0.5) * 400.0
+                val vy = (Math.random() - 0.5) * 400.0 - 200.0
+                val angVel = (Math.random() - 0.5) * 10.0
+                makeBrick(mPos.x, mPos.y, vx, vy, w = w, h = h, mass = 0.5 + Math.random() * 2.0, angVel = angVel)
+            }
+        }
+
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT)
 
         shader.bind()
         shader.setProjection(camera.getProjection())
-
-        // Draw rods
-        val anchorPos = scene.findEntity("anchor")?.transform?.position ?: Vector2D.ZERO
-        val bob0Pos = scene.findEntity("ball_0")?.transform?.position ?: Vector2D.ZERO
-
-        val lineVerts = floatArrayOf(
-            anchorPos.x.toFloat(), anchorPos.y.toFloat(),
-            bob0Pos.x.toFloat(), bob0Pos.y.toFloat(),
-        )
-
-        glBindBuffer(GL_ARRAY_BUFFER, lineVbo)
-        glBufferSubData(GL_ARRAY_BUFFER, 0, lineVerts)
-        glBindVertexArray(lineVao)
-        shader.setModel(MathUtil.modelMatrix(Transform())) // identity model
-        shader.setColor(1f, 1f, 1f, 0.8f)
-        glDrawArrays(GL_LINES, 0, 6)
 
         // Draw all entities
         for (entity in scene.allEntities()) {
@@ -202,20 +198,15 @@ fun main() {
                     entity.painter?.bind(shader) ?: shader.setColor(0.2f, 0.2f, 0.3f, 1f)
                     quadMesh.draw()
                 }
-
                 else -> {}
             }
         }
-
-
 
         glfwSwapBuffers(window)
         KeyListener.endFrame()
         MouseListener.endFrame()
     }
 
-    glDeleteVertexArrays(lineVao)
-    glDeleteBuffers(lineVbo)
     glfwDestroyWindow(window)
     glfwTerminate()
 }
