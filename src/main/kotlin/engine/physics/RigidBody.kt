@@ -5,6 +5,8 @@ import org.soyuz.util.Vector2D
 
 class RigidBody(
     mass: Double = 1.0,
+    val width: Double = 1.0,
+    val height: Double = 1.0,
     override val restitution: Double = 0.3,
     val friction: Double = 0.2
 ) : PhysicsBody {
@@ -16,7 +18,10 @@ class RigidBody(
         get() = pointMass.mass
         set(value) {
             pointMass.mass = value
-            inverseInertia = 1/value
+            inverseInertia = if (value > 0.0) {
+                val I = (value * (width * width + height * height)) / 12.0
+                1.0 / I
+            } else 0.0
         }
 
     var inverseMass: Double = pointMass.inverseMass
@@ -30,7 +35,10 @@ class RigidBody(
     // Angular motion
     var angularVelocity: Double = 0.0
     var torque: Double = 0.0
-    var inverseInertia: Double = if (mass > 0.0) 1.0 / mass else 0.0
+    var inverseInertia: Double = if (mass > 0.0) {
+        val momentOfInertia = (mass * (width * width + height * height)) / 12.0
+        1.0 / momentOfInertia
+    } else 0.0
         private set
 
     override fun applyForce(force: Vector2D) {
@@ -61,6 +69,7 @@ class RigidBody(
     override fun integrateVelocity(dt: Double, newAcceleration: Vector2D?) {
         pointMass.integrateVelocity(dt, newAcceleration)
         angularVelocity += torque * inverseInertia * dt
+        angularVelocity *= 0.99
         torque = 0.0
     }
 
@@ -75,4 +84,6 @@ class RigidBody(
     override fun removeField(field: ForceField) {
         pointMass.removeField(field)
     }
+
+    fun accumulateForces(position: Vector2D) = pointMass.accumulateForces(position)
 }
