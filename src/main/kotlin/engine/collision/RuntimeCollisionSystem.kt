@@ -4,6 +4,7 @@ import org.soyuz.engine.scene.Scene
 import org.soyuz.util.MathUtil
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
+import kotlin.math.abs
 
 class RuntimeCollisionSystem : CollisionSystem {
 
@@ -154,7 +155,7 @@ class RuntimeCollisionSystem : CollisionSystem {
             val (minB, maxB) = MathUtil.project(cornersB, axis)
             val overlap = minOf(maxA, maxB) - maxOf(minA, minB)
 
-            if (overlap <= 0.0) return null // separated
+            if (overlap <= 0.0) return null
 
             if (overlap < bestDepth) {
                 bestDepth = overlap
@@ -162,21 +163,55 @@ class RuntimeCollisionSystem : CollisionSystem {
             }
         }
 
-        // Ensure normal points from A toward B
-        val centerA = tA.position
-        val centerB = tB.position
-        if ((centerB - centerA).dot(bestNormal) < 0) {
-            bestNormal = -bestNormal
+        // Find reference and incident edges
+        val edgesA = getEdges(cornersA, tA.position)
+        val edgesB = getEdges(cornersB, tB.position)
+
+        val refEdge = edgesA.maxBy { it.normal.dot(bestNormal) }
+        val incEdge = edgesB.maxBy { it.normal.dot(-bestNormal) }
+
+        // Clip incident edge to reference edge
+        val refDir = refEdge.end - refEdge.start
+        val refLength = refDir.length()
+        if (refLength < 1e-9) {
+            // Degenerate edge, fall back
+            val point = (tA.position + tB.position) * 0.5
+            return Contact(entityA, entityB, point, bestNormal, bestDepth)
+        }
+        val refUnit = refDir / refLength
+
+        val t1 = (incEdge.start - refEdge.start).dot(refUnit)
+        val t2 = (incEdge.end - refEdge.start).dot(refUnit)
+        val tMin = maxOf(0.0, minOf(t1, t2))
+        val tMax = minOf(refLength, maxOf(t1, t2))
+
+        val contactPoint = if (tMin >= tMax) {
+            // Corner-edge
+            if (abs(t1) < abs(t2 - refLength)) incEdge.start else incEdge.end
+        } else {
+            // Edge-edge
+            refEdge.start + refUnit * ((tMin + tMax) * 0.5)
         }
 
-        // Contact point: midpoint of overlapping interval on the best axis
-        val (minA, maxA) = MathUtil.project(cornersA, bestNormal)
-        val (minB, maxB) = MathUtil.project(cornersB, bestNormal)
-        val overlapStart = maxOf(minA, minB)
-        val overlapEnd = minOf(maxA, maxB)
-        val mid = (overlapStart + overlapEnd) * 0.5
-        val point = bestNormal * mid // approximate, good enough for impulse resolution
+        return Contact(entityA, entityB, contactPoint, bestNormal, bestDepth)
+    }
 
-        return Contact(entityA, entityB, point, bestNormal, bestDepth)
+
+    data class Edge(val start: Vector2D, val end: Vector2D, val normal: Vector2D)
+
+    fun getEdges(corners: List<Vector2D>, center: Vector2D): List<Edge> {
+        val edges = mutableListOf<Edge>()
+        for (i in 0..3) {
+            val start = corners[i]
+            val end = corners[(i + 1) % 4]
+            val edgeDir = end - start
+            var normal = edgeDir.perpendicular().normalized()
+            val mid = (start + end) * 0.5
+            if ((mid - center).dot(normal) < 0) {
+                normal = -normal
+            }
+            edges.add(Edge(start, end, normal))
+        }
+        return edges
     }
 }
