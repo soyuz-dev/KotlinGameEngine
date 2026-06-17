@@ -272,7 +272,7 @@ class RuntimePhysicsSystem(
                 val frictionCoeff = 0.1  // tune: higher = more friction
                 val frictionMagnitude = frictionCoeff * abs(j)  // No velocity cap
                 val frictionImpulse = tangent * -kotlin.math.sign(vAlongTangent) * frictionMagnitude
-                println("DEBUG FRICTION: entity=${contact.entityA}, vAlongTangent=$vAlongTangent, j=$j, frictionMag=$frictionMagnitude")
+                //println("DEBUG FRICTION: entity=${contact.entityA}, vAlongTangent=$vAlongTangent, j=$j, frictionMag=$frictionMagnitude")
 
                 bodyA.applyImpulse(-frictionImpulse, contact.point - entityA.transform.position)
                 bodyB.applyImpulse(frictionImpulse, contact.point - entityB.transform.position)

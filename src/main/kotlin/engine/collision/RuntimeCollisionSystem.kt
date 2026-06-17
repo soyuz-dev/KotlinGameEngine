@@ -34,6 +34,14 @@ class RuntimeCollisionSystem : CollisionSystem {
                 val colliderA = colliders[a.id]!!
                 val colliderB = colliders[b.id]!!
 
+                val (centerA, radiusA) = colliderA.boundingCircle(a.transform)
+                val (centerB, radiusB) = colliderB.boundingCircle(b.transform)
+                val dx = centerB.x - centerA.x
+                val dy = centerB.y - centerA.y
+                val distSq = dx * dx + dy * dy
+                val radiusSum = radiusA + radiusB
+                if (distSq > radiusSum * radiusSum) continue // bounding circles don't overlap
+
                 if (colliderA.intersects(colliderB, a.transform, b.transform)) {
                     val contact = computeContact(a.id, b.id, colliderA, colliderB, a.transform, b.transform)
                     if (contact != null) {

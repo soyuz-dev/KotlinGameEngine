@@ -181,4 +181,9 @@ class CircleCollider(
             kotlin.math.abs(transform.scale.y)
         )
     }
+
+    override fun boundingCircle(transform: Transform): Pair<Vector2D, Double> {
+        val radius = worldRadius(transform)
+        return transform.position to radius
+    }
 }

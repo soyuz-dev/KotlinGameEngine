@@ -82,4 +82,11 @@ class RectangleCollider(
         return true
     }
 
+    override fun boundingCircle(transform: Transform): Pair<Vector2D, Double> {
+        return transform.position to shape.supportRadius() * maxOf(
+            kotlin.math.abs(transform.scale.x),
+            kotlin.math.abs(transform.scale.y)
+        )
+    }
+
 }
