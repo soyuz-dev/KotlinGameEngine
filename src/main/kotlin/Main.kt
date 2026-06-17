@@ -105,7 +105,7 @@ fun main() {
         val brick = DefaultGameEntity(id)
         brick.goto(position = Vector2D(x, y))
         brick.shape = RectangleShape(w, h)
-        brick.painter = SolidColor(0.8, 0.4, 0.1, 1.0) // orange-brown brick color
+        brick.painter = SolidColor(Math.random(), Math.random(), Math.random(), 1.0) // orange-brown brick color
 
         val body = RigidBody(mass = mass, restitution = restitution, friction = 0.4, width = w, height = h)
         body.addField(gravity)
@@ -139,8 +139,6 @@ fun main() {
     // Spawn some bricks with spin
 
     // Spawn some balls for chaos
-    makeBall(width / 3.0, height / 2.0, 200.0, -500.0, mass = 0.5, radius = 8.0)
-    makeBall(2 * width / 3.0, height / 2.0, -200.0, -300.0, mass = 0.5, radius = 8.0)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
@@ -160,19 +158,12 @@ fun main() {
         // Spawn on click
         if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             val mPos = MouseListener.getPos()
-            if (Math.random() < 0.5) {
-                val r = 5.0 + Math.random() * 15.0
-                val vx = (Math.random() - 0.5) * 600.0
-                val vy = (Math.random() - 0.5) * 600.0 - 300.0
-                makeBall(mPos.x, mPos.y, vx, vy, mass = 0.5 + Math.random() * 2.0, radius = r)
-            } else {
-                val w = 20.0 + Math.random() * 60.0
-                val h = 15.0 + Math.random() * 40.0
-                val vx = (Math.random() - 0.5) * 400.0
-                val vy = (Math.random() - 0.5) * 400.0 - 200.0
-                val angVel = (Math.random() - 0.5) * 10.0
-                makeBrick(mPos.x, mPos.y, vx, vy, w = w, h = h, mass = 0.5 + Math.random() * 2.0, angVel = angVel)
-            }
+            val w = 20.0 + Math.random() * 60.0
+            val h = 15.0 + Math.random() * 40.0
+            val vx = (Math.random() - 0.5) * 400.0
+            val vy = (Math.random() - 0.5) * 400.0 - 200.0
+            val angVel = (Math.random() - 0.5) * 10.0
+            makeBrick(mPos.x, mPos.y, vx, vy, w = w, h = h, mass = 0.5 + Math.random() * 2.0, angVel = angVel)
         }
 
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)

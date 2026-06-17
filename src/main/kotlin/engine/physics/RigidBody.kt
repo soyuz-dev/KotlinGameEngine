@@ -69,7 +69,6 @@ class RigidBody(
     override fun integrateVelocity(dt: Double, newAcceleration: Vector2D?) {
         pointMass.integrateVelocity(dt, newAcceleration)
         angularVelocity += torque * inverseInertia * dt
-        angularVelocity *= 0.99
         torque = 0.0
     }
 

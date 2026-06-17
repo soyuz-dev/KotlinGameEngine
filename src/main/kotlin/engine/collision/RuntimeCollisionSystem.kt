@@ -46,8 +46,8 @@ class RuntimeCollisionSystem : CollisionSystem {
         return contacts
     }
 
-    override fun hasCollider(id: String): Boolean {
-        return id in colliders.keys
+    override fun hasCollider(entityId: String): Boolean {
+        return entityId in colliders.keys
     }
 
 
@@ -163,12 +163,15 @@ class RuntimeCollisionSystem : CollisionSystem {
             }
         }
 
+
+        val finalNormal = if ((tB.position - tA.position).dot(bestNormal) < 0) -bestNormal else bestNormal
+
         // Find reference and incident edges
         val edgesA = getEdges(cornersA, tA.position)
         val edgesB = getEdges(cornersB, tB.position)
 
-        val refEdge = edgesA.maxBy { it.normal.dot(bestNormal) }
-        val incEdge = edgesB.maxBy { it.normal.dot(-bestNormal) }
+        val refEdge = edgesA.maxBy { it.normal.dot(finalNormal) }
+        val incEdge = edgesB.maxBy { it.normal.dot(-finalNormal) }
 
         // Clip incident edge to reference edge
         val refDir = refEdge.end - refEdge.start
@@ -190,10 +193,27 @@ class RuntimeCollisionSystem : CollisionSystem {
             if (abs(t1) < abs(t2 - refLength)) incEdge.start else incEdge.end
         } else {
             // Edge-edge
-            refEdge.start + refUnit * ((tMin + tMax) * 0.5)
+            val denom = t2 - t1
+            if (abs(denom) < 1e-9) {
+                // Fallback for perfectly degenerate edges
+                refEdge.start + refUnit * ((tMin + tMax) * 0.5)
+            } else {
+                // Find the two exact endpoints of the clipped segment on the incident edge
+                val f1 = (tMin - t1) / denom
+                val f2 = (tMax - t1) / denom
+                val cp1 = incEdge.start + (incEdge.end - incEdge.start) * f1
+                val cp2 = incEdge.start + (incEdge.end - incEdge.start) * f2
+
+                // Pick the point that is deepest along the collision normal.
+                // Because finalNormal points from A to B, the deeper point into A
+                // will have the smaller dot product.
+                if (cp1.dot(finalNormal) < cp2.dot(finalNormal)) cp1 else cp2
+            }
         }
 
-        return Contact(entityA, entityB, contactPoint, bestNormal, bestDepth)
+
+
+        return Contact(entityA, entityB, contactPoint, finalNormal, bestDepth)
     }
 
 

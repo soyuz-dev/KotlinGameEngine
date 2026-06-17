@@ -16,7 +16,9 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.util.ShapeQueries
 import org.soyuz.util.Vector2D
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sqrt
+import kotlin.math.min
 
 class RuntimePhysicsSystem(
     private val collisionSystem: CollisionSystem,
@@ -199,7 +201,7 @@ class RuntimePhysicsSystem(
 
             // Alignment Correction: Ensure the contact normal consistently points from A to B
             val relPos = entityB.transform.position - entityA.transform.position
-            val normal = if (relPos.dot(contact.normal) < 0.0) -contact.normal else contact.normal
+            val normal = contact.normal
 
             val relativeV = bodyB.velocity - bodyA.velocity
             val vAlongNormal = relativeV.dot(normal)
@@ -267,9 +269,8 @@ class RuntimePhysicsSystem(
                 val invMassEffectiveB_T = invMassB + (rBCrossT * rBCrossT) *
                         if (bodyB is RigidBody) bodyB.inverseInertia else 0.0
 
-                val frictionCoeff = 0.5  // tune: higher = more friction
-                val frictionMagnitude = kotlin.math.min(frictionCoeff * kotlin.math.abs(j),
-                    kotlin.math.abs(vAlongTangent) / (invMassEffectiveA_T + invMassEffectiveB_T))
+                val frictionCoeff = 0.1  // tune: higher = more friction
+                val frictionMagnitude = frictionCoeff * abs(j)  // No velocity cap
                 val frictionImpulse = tangent * -kotlin.math.sign(vAlongTangent) * frictionMagnitude
                 println("DEBUG FRICTION: entity=${contact.entityA}, vAlongTangent=$vAlongTangent, j=$j, frictionMag=$frictionMagnitude")
 

@@ -32,7 +32,7 @@ object ShapeQueries {
     fun containsPoint(shape: Shape2D, transform: Transform, point: Vector2D): Boolean {
         val localPoint = Transform.worldToLocal(point, transform) ?: return false
         return when (shape) {
-            is CircleShape -> localPoint.lengthSquared() <= shape.radius.toDouble() * shape.radius
+            is CircleShape -> localPoint.lengthSquared() <= shape.radius * shape.radius
             is RectangleShape -> {
                 val halfWidth = shape.width * 0.5
                 val halfHeight = shape.height * 0.5
@@ -43,7 +43,7 @@ object ShapeQueries {
     }
     private fun worldAabbForCircle(shape: CircleShape, transform: Transform): Aabb2D {
         val center = transform.position
-        val radius = shape.radius.toDouble()
+        val radius = shape.radius
         val scaledX = radius * abs(transform.scale.x)
         val scaledY = radius * abs(transform.scale.y)
 
