@@ -19,7 +19,6 @@ class AudioClip private constructor(val buffer: Int, val format: Int, val sample
 
             val error = IntArray(1)
             val decoder = STBVorbis.stb_vorbis_open_memory(rawBuffer, error, null)
-                ?: throw IllegalArgumentException("Failed to decode OGG: $path, error: ${error[0]}")
 
             val info = STBVorbisInfo.malloc()
             STBVorbis.stb_vorbis_get_info(decoder, info)
