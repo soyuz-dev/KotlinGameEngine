@@ -3,7 +3,6 @@ package org.soyuz
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil.NULL
 import org.soyuz.engine.audio.AudioSource
 import org.soyuz.engine.audio.AudioSystem
@@ -11,64 +10,56 @@ import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
 import org.soyuz.engine.render.Shader
+import org.soyuz.engine.render.SolidColor
 import org.soyuz.engine.render.image.ImagePainter
+import org.soyuz.engine.render.text.TextPainter
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
 import org.soyuz.util.Assets
+import org.soyuz.util.Color
 import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 fun main() {
     if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
 
-    var width = 1920
-    var height = 1080
+    var width = 800
+    var height = 600
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
-    val window = glfwCreateWindow(width, height, "Bump", NULL, NULL)
+    val window = glfwCreateWindow(width, height, "Bump - AV Test", NULL, NULL)
     if (window == NULL) throw RuntimeException("Failed to create window")
 
     glfwMakeContextCurrent(window)
     GL.createCapabilities()
     glfwSwapInterval(0)
 
-    println("OpenGL ${glGetString(GL_VERSION)}")
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    // --- Audio setup ---
     AudioSystem.init()
 
     // --- Renderer setup ---
-    val shader = Shader.fromResource("/shaders/default.vert", "/shaders/default.frag")
+    val shader = Assets.shader("default")
     val camera = Camera()
     camera.setOrtho(width.toFloat(), height.toFloat())
     val quadMesh = Mesh.quad()
     val circleMesh = Mesh.circle(32)
 
-    // Line mesh for rods (VAO/VBO that we update each frame)
-    val lineVao = glGenVertexArrays()
-    val lineVbo = glGenBuffers()
-    glBindVertexArray(lineVao)
-    glBindBuffer(GL_ARRAY_BUFFER, lineVbo)
-    glBufferData(GL_ARRAY_BUFFER, 100 * 2 * 4, GL_DYNAMIC_DRAW) // 4 vertices * 2 floats * 4 bytes
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
-    glEnableVertexAttribArray(0)
-    glBindVertexArray(0)
-
-    // --- Framebuffer size callback ---
     glfwSetFramebufferSizeCallback(window) { _, w, h ->
-        width = w
-        height = h
+        width = w; height = h
         glViewport(0, 0, width, height)
         camera.setOrtho(width.toFloat(), height.toFloat())
     }
 
-    // --- Input callbacks ---
     glfwSetKeyCallback(window) { _, key, _, action, _ ->
         KeyListener.keyCallback(0, key, 0, action, 0)
     }
@@ -82,69 +73,140 @@ fun main() {
         MouseListener.mouseScrollCallback(0, x, y)
     }
 
-    // --- Physics setup ---
-    val scene = RuntimeScene("main")
+    // --- Scene setup ---
+    val scene = RuntimeScene("av_test")
 
-    // Add a textured entity
+    // Cat
+    val cat = DefaultGameEntity("cat")
+    cat.goto(Vector2D(width / 3.0, height / 2.0))
+    cat.shape = RectangleShape(200.0, 200.0)
+    cat.painter = ImagePainter(Assets.texture("cat"))
+    scene.addEntity(cat)
 
-    val texturedBox1 = DefaultGameEntity("textured_box1")
-    texturedBox1.goto(Vector2D(width / 1.5, height / 3.0))
-    texturedBox1.turnTo(1.0)
-    texturedBox1.shape = RectangleShape(128.0, 128.0)
-    texturedBox1.painter = ImagePainter(Assets.texture("cat")) // needs image in resources/textures/
-    scene.addEntity(texturedBox1)
+    // Dog
+    val dog = DefaultGameEntity("dog")
+    dog.goto(Vector2D(2 * width / 3.0, height / 2.0))
+    dog.shape = RectangleShape(200.0, 200.0)
+    dog.painter = ImagePainter(Assets.texture("dog"))
+    scene.addEntity(dog)
 
-    var growTimer = 0.0
+    // FPS Counter
+    val font = Assets.font("roboto")
+    val fpsPainter = TextPainter(font)
+    fpsPainter.fontSize = 24f
+    fpsPainter.text = "FPS: 0"
+    fpsPainter.color = Color(255, 255, 255)
+
+    val fpsEntity = DefaultGameEntity("fps")
+    fpsEntity.goto(Vector2D(width/2.0, 10.0))
+    fpsEntity.shape = RectangleShape(200.0, 30.0)
+    fpsEntity.painter = fpsPainter
+    scene.addEntity(fpsEntity)
+
+    // Title
+    val titlePainter = TextPainter(font)
+    titlePainter.fontSize = 48f
+    titlePainter.text = "Bump AV Test"
+    titlePainter.color = Color(255, 200, 50)
+
+    val titleEntity = DefaultGameEntity("title")
+    titleEntity.goto(Vector2D(width / 2.0 - 150.0, 50.0))
+    titleEntity.shape = RectangleShape(400.0, 60.0)
+    titleEntity.painter = titlePainter
+    scene.addEntity(titleEntity)
+
+    // Instructions
+    val instrPainter = TextPainter(font)
+    instrPainter.fontSize = 18f
+    instrPainter.text = "Click on cat or dog for sound | Press ESC to exit"
+    instrPainter.color = Color(180, 180, 180)
+
+    val instrEntity = DefaultGameEntity("instructions")
+    instrEntity.goto(Vector2D(width / 2.0 - 200.0, height - 40.0))
+    instrEntity.shape = RectangleShape(500.0, 25.0)
+    instrEntity.painter = instrPainter
+    scene.addEntity(instrEntity)
+
+    // Decorative circle
+    val circle = DefaultGameEntity("circle")
+    circle.goto(Vector2D(width / 2.0, height / 2.0))
+    circle.shape = CircleShape(80.0)
+    circle.painter = SolidColor(Color(255, 100, 50, 100))
+    scene.addEntity(circle)
 
     // --- Main loop ---
     var lastTime = glfwGetTime()
+    var time = 0f
 
     while (!glfwWindowShouldClose(window)) {
-        val pos = MouseListener.getPos()
         val currentTime = glfwGetTime()
-        val rawDt = currentTime - lastTime
+        val dt = (currentTime - lastTime).toFloat()
         lastTime = currentTime
-        val dt = minOf(rawDt, 0.02)
-
-        glfwSetWindowTitle(window, "Bump! | Mouse: (${"%.0f".format(pos.x)}, ${"%.0f".format(pos.y)}) | fps: ${"%.0f".format(1.0 / dt)}")
+        time += dt
 
         glfwPollEvents()
 
-        AudioSystem.update(
-            listenerX = 0f,  // or camera position if you had one
-            listenerY = 0f,
-            vX = 0f,
-            vY = 0f
-        )
+        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+            glfwSetWindowShouldClose(window, true)
+        }
 
+        val fps = (1f / dt).roundToInt()
+        fpsPainter.text = "FPS: $fps"
+
+        // Pulse circle
+        val pulse = 1.0 + sin(time * 3.0) * 0.3
+        circle.shape = CircleShape(80.0 * pulse)
+        (circle.painter as SolidColor).let {
+            val hue = (sin(time * 0.5) * 0.5 + 0.5)
+            // Can't modify SolidColor easily — skip for now or reconstruct
+        }
+
+        // Click detection
+        if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            val mPos = MouseListener.getPos()
+            val catBounds = cat.shape as RectangleShape
+            val dogBounds = dog.shape as RectangleShape
+
+            if (mPos.x in cat.transform.position.x - catBounds.width/2 .. cat.transform.position.x + catBounds.width/2 &&
+                mPos.y in cat.transform.position.y - catBounds.height/2 .. cat.transform.position.y + catBounds.height/2) {
+                val meow = AudioSource()
+                meow.play(Assets.audio("meow"))
+            }
+
+            if (mPos.x in dog.transform.position.x - dogBounds.width/2 .. dog.transform.position.x + dogBounds.width/2 &&
+                mPos.y in dog.transform.position.y - dogBounds.height/2 .. dog.transform.position.y + dogBounds.height/2) {
+                val bark = AudioSource()
+                bark.play(Assets.audio("bark"))
+            }
+        }
+
+        // Update dynamic painters
+        fpsPainter.update(dt)
+        titlePainter.update(dt)
+        instrPainter.update(dt)
+
+        // Resize text entities to match textures
+        for (painter in listOf(fpsPainter, titlePainter, instrPainter)) {
+            painter.texture?.let { tex ->
+                val entity = when (painter) {
+                    fpsPainter -> fpsEntity
+                    titlePainter -> titleEntity
+                    instrPainter -> instrEntity
+                    else -> null
+                }
+                entity?.shape = RectangleShape(tex.width.toDouble(), tex.height.toDouble())
+            }
+        }
+
+        AudioSystem.update(0f, 0f, 0f, 0f)
+
+        // Render
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT)
 
         shader.bind()
         shader.setProjection(camera.getProjection())
 
-        growTimer += dt
-
-        val w = 5.0 + growTimer
-        val h = 5.0 + growTimer
-
-        texturedBox1.shape = RectangleShape(w, h)
-
-        val halfW = (w / 2).toFloat()
-        val halfH = (h / 2).toFloat()
-        quadMesh.updateVertices(floatArrayOf(
-            -halfW, -halfH,  0f, 0f,
-            halfW, -halfH,  1f, 0f,
-            -halfW,  halfH,  0f, 1f,
-            halfW,  halfH,  1f, 1f
-        ))
-
-        if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-            val source = AudioSource();
-            source.play(Assets.audio("meow"))
-        }
-
-        // Draw all entities
         for (entity in scene.allEntities()) {
             when (entity.shape) {
                 is CircleShape -> {
@@ -158,15 +220,12 @@ fun main() {
                     shader.setModel(MathUtil.modelMatrix(entity.transform.copy(
                         scale = Vector2D((entity.shape as RectangleShape).width, (entity.shape as RectangleShape).height)
                     )))
-                    entity.painter?.bind(shader) ?: shader.setColor(0.2f, 0.2f, 0.3f, 1f)
+                    entity.painter?.bind(shader) ?: shader.setColor(1f, 0f, 1f, 1f)
                     quadMesh.draw()
                 }
-
                 else -> {}
             }
         }
-
-
 
         glfwSwapBuffers(window)
         KeyListener.endFrame()
@@ -175,8 +234,6 @@ fun main() {
 
     AudioSystem.cleanup()
     Assets.cleanup()
-    glDeleteVertexArrays(lineVao)
-    glDeleteBuffers(lineVbo)
     glfwDestroyWindow(window)
     glfwTerminate()
 }
