@@ -16,6 +16,17 @@ class Texture private constructor(
         glBindTexture(GL_TEXTURE_2D, id)
     }
 
+    constructor(width: Int, height: Int, pixels: ByteBuffer) : this(
+        id = glGenTextures(),
+        width = width,
+        height = height
+    ) {
+        glBindTexture(GL_TEXTURE_2D, id)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    }
+
     fun cleanup() {
         glDeleteTextures(id)
     }

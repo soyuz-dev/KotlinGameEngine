@@ -3,11 +3,14 @@ package org.soyuz.util
 import org.soyuz.engine.audio.AudioClip
 import org.soyuz.engine.render.Shader
 import org.soyuz.engine.render.image.Texture
+import org.soyuz.engine.render.text.Font
 
 object Assets {
     private val shaders = mutableMapOf<String, Shader>()
     private val textures = mutableMapOf<String, Texture>()
     private val audio = mutableMapOf<String, AudioClip>()
+
+    private val fonts = mutableMapOf<String, Font>()
 
     fun shader(name: String): Shader {
         return shaders.getOrPut(name) {
@@ -24,6 +27,12 @@ object Assets {
     fun audio(name: String): AudioClip {
         return audio.getOrPut(name) {
             AudioClip.fromResource("/audio/$name.ogg")
+        }
+    }
+
+    fun font(name: String): Font {
+        return fonts.getOrPut(name) {
+            Font("/fonts/$name.ttf")
         }
     }
 
