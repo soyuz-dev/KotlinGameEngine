@@ -72,15 +72,25 @@ fun main() {
     // --- Main loop ---
     var lastTime = glfwGetTime()
 
+    var delta = 0f
+
     while (!glfwWindowShouldClose(window)) {
         val currentTime = glfwGetTime()
         val dt = (currentTime - lastTime).toFloat()
         lastTime = currentTime
 
+
+        delta += dt
+
         glfwPollEvents()
         val fps = (1/dt).roundToInt()
 
         textPainter.text = "FPS: $fps"
+
+        if(delta > 1f) {
+            textPainter.color = Color.random()
+            delta = 0f
+        }
 
         textPainter.update(dt)
         // In TextTest.kt, after textPainter.update(dt):
