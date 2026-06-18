@@ -40,6 +40,7 @@ object Assets {
         shaders.values.forEach { it.cleanup() }
         textures.values.forEach { it.cleanup() }
         audio.values.forEach { it.cleanup() }
-        shaders.clear(); textures.clear(); audio.clear()
+        fonts.values.forEach { it.cleanup() }
+        shaders.clear(); textures.clear(); audio.clear(); fonts.clear()
     }
 }

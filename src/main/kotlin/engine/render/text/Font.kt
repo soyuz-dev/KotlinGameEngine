@@ -51,12 +51,15 @@ class Font(val path: String) {
 
         // Second pass: render each glyph into the assembled image
         val imageBuffer = ByteBuffer.allocateDirect((totalWidth * totalHeight * 4).toInt())
+        for (i in 0 until imageBuffer.capacity()) {
+            imageBuffer.put(i, 0.toByte())
+        }
         var xPos = 0f
         for (char in text) {
             val width = IntArray(1); val height = IntArray(1)
             val xoff = IntArray(1); val yoff = IntArray(1)
             val bitmap = STBTruetype.stbtt_GetCodepointBitmap(
-                fontInfo, 0f, scale, char.code, width, height, xoff, yoff
+                fontInfo, scale, scale, char.code, width, height, xoff, yoff
             )
 
             if (bitmap != null) {
@@ -101,5 +104,6 @@ class Font(val path: String) {
     fun cleanup() {
         // STBTruetype doesn't require cleanup for fontInfo,
         // but you can free fontData if needed
+        fontData.clear()
     }
 }
