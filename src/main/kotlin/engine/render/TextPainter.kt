@@ -4,6 +4,7 @@ import org.soyuz.engine.render.image.Texture
 import org.soyuz.engine.render.text.Font
 import org.soyuz.util.Color
 
+
 class TextPainter(
     var text: String,
     val font: Font,
