@@ -1,6 +1,6 @@
 package org.soyuz.engine.physics
 
-import org.soyuz.engine.physics.forcefields.DynamicForceField
+import org.soyuz.engine.physics.forcefields.EntityAwareForceField
 import org.soyuz.engine.physics.joints.Joint
 import org.soyuz.engine.scene.Scene
 
@@ -14,9 +14,9 @@ interface PhysicsSystem {
 
     fun step(scene: Scene, dt: Double)
 
-    fun addDynamicField(field: DynamicForceField)
+    fun addDynamicField(field: EntityAwareForceField)
 
-    fun removeDynamicField(field: DynamicForceField)
+    fun removeDynamicField(field: EntityAwareForceField)
 
     fun addJoint(joint: Joint)
 

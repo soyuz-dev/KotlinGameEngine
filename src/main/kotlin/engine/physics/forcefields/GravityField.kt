@@ -4,7 +4,7 @@ import org.soyuz.engine.physics.PhysicsBody
 import org.soyuz.util.Vector2D
 import kotlin.collections.iterator
 
-class GravityField(private val G: Double = 5e6) : DynamicForceField {
+class GravityField(private val G: Double = 5e6) : EntityAwareForceField {
     private data class BodyEntry(val body: PhysicsBody, var position: Vector2D)
     private val bodies = mutableMapOf<String, BodyEntry>()
 

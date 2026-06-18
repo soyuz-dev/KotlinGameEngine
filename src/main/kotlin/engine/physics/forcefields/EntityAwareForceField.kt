@@ -3,7 +3,7 @@ package org.soyuz.engine.physics.forcefields
 import org.soyuz.engine.physics.PhysicsBody
 import org.soyuz.util.Vector2D
 
-interface DynamicForceField: ForceField {
+interface EntityAwareForceField: ForceField {
     fun registerBody(entityId:String, body: PhysicsBody, position: Vector2D)
     fun unregisterBody(entityId:String)
     fun updatePosition(entityId:String, position: Vector2D)

@@ -5,8 +5,7 @@ import org.soyuz.engine.collision.CollisionSystem
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.EventBus
-import org.soyuz.engine.events.RuntimeEventBus
-import org.soyuz.engine.physics.forcefields.DynamicForceField
+import org.soyuz.engine.physics.forcefields.EntityAwareForceField
 import org.soyuz.engine.physics.joints.Joint
 import org.soyuz.engine.physics.joints.PermissiveJoint
 import org.soyuz.engine.physics.joints.StrictJoint
@@ -16,9 +15,7 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.util.ShapeQueries
 import org.soyuz.util.Vector2D
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.sqrt
-import kotlin.math.min
 
 class RuntimePhysicsSystem(
     private val collisionSystem: CollisionSystem,
@@ -26,7 +23,7 @@ class RuntimePhysicsSystem(
 ) : PhysicsSystem {
 
     private val bodies = mutableMapOf<String, PhysicsBody>()
-    private val dynamicFields = mutableListOf<DynamicForceField>()
+    private val dynamicFields = mutableListOf<EntityAwareForceField>()
 
     private val joints = mutableListOf<Joint>()
     private val bodyToEntity = mutableMapOf<PhysicsBody, String>()
@@ -41,11 +38,11 @@ class RuntimePhysicsSystem(
         joints.remove(joint)
     }
 
-    override fun addDynamicField(field: DynamicForceField) {
+    override fun addDynamicField(field: EntityAwareForceField) {
         dynamicFields.add(field)
     }
 
-    override fun removeDynamicField(field: DynamicForceField) {
+    override fun removeDynamicField(field: EntityAwareForceField) {
         dynamicFields.remove(field)
     }
 
