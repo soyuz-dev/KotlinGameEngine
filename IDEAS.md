@@ -45,11 +45,23 @@ Modifiers applied in order at bind time. Composability without subclass explosio
 ### Particle system
 Lightweight GPU-particle system for trails, sparks, debris on collision. `ParticleEmitter` as a component. Could fire on `CollisionEvent`.
 
-### Text rendering
-Bitmap or SDF font rendering. Needed for debug UI, in-game HUD, entity labels.
-
 ### Render layers / z-ordering
 Entities sorted by layer before drawing. Background, game, foreground, UI. Prevents painter's algorithm issues.
+
+---
+
+## UI System
+
+### SceneNode hierarchy
+`SceneNode` as common base for `GameEntity` and `UIComponent`. Shared `transform`, `shape`, `painter`, `collider`. UI hit-testing via existing collider infrastructure.
+
+### UI Components
+- **StaticUI:** Labels, images, panels — no input
+- **DynamicUI:** Buttons, sliders, text inputs — hover/press/click states, callbacks
+- Hit-testing via `collider.containsPoint()`, state management via `UISystem`
+
+### Layout system
+Flexbox-like or anchor-based layout. UI elements position relative to parent or screen edges. Needed for menus and HUD.
 
 ---
 
@@ -69,16 +81,13 @@ Reusable entity definitions. Instantiate with overrides. `prefab("bouncy_ball") 
 ## Systems
 
 ### Broadphase (spatial hash)
-Replace O(n²) collision detection with spatial partitioning. Divide world into grid cells, only check pairs in same or adjacent cells.
+Replace O(n²) collision detection with spatial partitioning. Divide world into grid cells, only check pairs in same or adjacent cells. (Bounding circle broadphase already implemented — spatial hash is the next tier.)
 
 ### Serialization
 Scene save/load. Serialize entity graph, transforms, colliders, physics bodies. JSON or a custom binary format. Needed for level editing later.
 
 ### Profiling / metrics overlay
-FPS, frame time, body count, collision pairs checked, force calculations skipped (via bit-hack counter). Useful for tuning the threshold in `GravityField`.
-
-### Audio system
-`AudioClip` with OpenAL or similar. `AudioSource` component on entities. Play on collision, loop background music, spatialized 2D audio.
+FPS, frame time, body count, collision pairs checked, force calculations skipped (via bit-hack counter). Useful for tuning the threshold in `GravityField`. (FPS counter via `TextPainter` already working.)
 
 ---
 
@@ -106,12 +115,19 @@ Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 - [x] Shader-based rendering (core profile)
 - [x] CCD with substepping and corner mitigation
 - [x] EventBus with collision events
-- [x] DynamicForceField for multi-body interactions
+- [x] EntityAwareForceField for multi-body interactions
 - [x] n-body gravity with bit-hack exponent optimization
 - [x] Painter interface with SolidColor
 - [x] ImagePainter with STB texture loading
-- [x] Assets object for shader/texture caching
+- [x] TextPainter with STB TrueType font rendering
+- [x] DynamicPainter for per-frame visual updates
+- [x] Assets object for shader/texture/font/audio caching
 - [x] RodJoint with Baumgarte stabilization
 - [x] RopeJoint (one-way constraint)
 - [x] SpringJoint with damping
 - [x] Triple pendulum (tested stable 10+ minutes)
+- [x] Audio system (OpenAL, OGG playback, spatial audio)
+- [x] Bounding circle broadphase (3-7x performance improvement)
+- [x] Rigidbody with angular physics, friction, proper contact points
+- [x] Cross-platform build (Windows, Linux, macOS Intel + Apple Silicon)
+- [x] Color utility class
