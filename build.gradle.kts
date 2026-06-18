@@ -1,3 +1,5 @@
+
+import org.gradle.internal.os.OperatingSystem
 plugins {
     kotlin("jvm") version "2.3.10"
     application
@@ -15,7 +17,15 @@ application {
 }
 
 val lwjglV = "3.3.3"
-val lwjglNatives = "natives-windows"
+val lwjglNatives = when {
+    OperatingSystem.current().isWindows -> "natives-windows"
+    OperatingSystem.current().isLinux -> "natives-linux"
+    OperatingSystem.current().isMacOsX -> {
+        // Handle Intel (x64) vs Apple Silicon (arm64) Macs
+        if (System.getProperty("os.arch").startsWith("aarch64")) "natives-macos-arm64" else "natives-macos"
+    }
+    else -> throw GradleException("Unsupported operating system")
+}
 
 dependencies {
     testImplementation(kotlin("test"))
