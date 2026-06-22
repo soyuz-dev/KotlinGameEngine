@@ -52,16 +52,20 @@ Entities sorted by layer before drawing. Background, game, foreground, UI. Preve
 
 ## UI System
 
-### SceneNode hierarchy
-`SceneNode` as common base for `GameEntity` and `UIComponent`. Shared `transform`, `shape`, `painter`, `collider`. UI hit-testing via existing collider infrastructure.
+### Slider component
+`UI.slider(id, x, y, width, min, max, initial)` — draggable thumb on a track. Fires `onValueChanged`. Uses `Interactive.draggable` internally.
 
-### UI Components
-- **StaticUI:** Labels, images, panels — no input
-- **DynamicUI:** Buttons, sliders, text inputs — hover/press/click states, callbacks
-- Hit-testing via `collider.containsPoint()`, state management via `UISystem`
+### Text input
+`UI.textInput(id, x, y, width, font)` — focusable text field. Captures keyboard input via `Interactive.keyboardInput`. Renders text with cursor.
 
 ### Layout system
-Flexbox-like or anchor-based layout. UI elements position relative to parent or screen edges. Needed for menus and HUD.
+Flexbox-like or anchor-based layout. UI elements position relative to parent or screen edges. Needed for menus and HUD. `UI.hbox { }`, `UI.vbox { }` builders.
+
+### UI themes
+Predefined color schemes and painter configurations. `UI.theme = Theme.DARK` applies consistent styling to all UI factory elements.
+
+### Dropdown / context menu
+List of options that appears on click. Uses `Interactive` for each item. Renders on top of other elements.
 
 ---
 
@@ -100,7 +104,7 @@ Physics step runs on a worker thread while main thread handles GLFW events + ren
 Run without a window for unit testing physics, AI, or server-side simulation. No GLFW dependency.
 
 ### WebAssembly target
-Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
+Kotlin/Wasm + WebGL. Bump in the browser. Very much a long-term fever dream.
 
 ---
 
@@ -131,3 +135,9 @@ Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 - [x] Rigidbody with angular physics, friction, proper contact points
 - [x] Cross-platform build (Windows, Linux, macOS Intel + Apple Silicon)
 - [x] Color utility class
+- [x] UI System with Interactive decorator chain (clickable, hoverable, draggable, scrollable, focusable, doubleClickable)
+- [x] UISystem input router with hover/press/drag/focus/scroll state management
+- [x] UI factory (button, label convenience functions)
+- [x] RuntimeEngine orchestrating UI → Physics → Dynamics → Render
+- [x] RenderSystem abstraction
+- [x] Dynamic interface for per-frame update dispatch
