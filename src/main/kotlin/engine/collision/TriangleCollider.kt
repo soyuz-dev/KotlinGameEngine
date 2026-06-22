@@ -139,7 +139,7 @@ class TriangleCollider(
 
     // ==================== Contains ====================
 
-    fun contains(point: Vector2D, transform: Transform): Boolean {
+    override fun containsPoint(point: Vector2D, transform: Transform): Boolean {
         val verts = worldVertices(transform)
         return pointInTriangle(point, verts[0], verts[1], verts[2])
     }

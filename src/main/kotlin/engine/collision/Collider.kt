@@ -9,4 +9,6 @@ interface Collider {
     fun intersects(other: Collider, selfTransform: Transform, otherTransform: Transform): Boolean
 
     fun boundingCircle(transform: Transform) : Pair<Vector2D, Double>
+
+    fun containsPoint(point: Vector2D, transform: Transform): Boolean
 }

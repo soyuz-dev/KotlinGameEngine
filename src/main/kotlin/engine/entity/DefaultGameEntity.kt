@@ -1,7 +1,9 @@
 package org.soyuz.engine.entity
 
+import org.soyuz.engine.collision.Collider
 import org.soyuz.engine.render.Painter
 import org.soyuz.engine.shape.Shape2D
+import org.soyuz.engine.ui.Interactive
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
 
@@ -12,6 +14,8 @@ class DefaultGameEntity(
     override var transform: Transform = Transform(),
     override var shape: Shape2D? = null,
     override var painter: Painter? = null,
+    override var collider: Collider? = null,
+    override var interactive: Interactive? = null,
 ) : GameEntity {
     private val updateCallbacks = mutableListOf<GameEntityUpdateCallback>()
     private val collisionCallbacks = mutableListOf<(other: GameEntity) -> Unit>()

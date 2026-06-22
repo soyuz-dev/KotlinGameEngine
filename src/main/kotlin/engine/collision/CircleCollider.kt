@@ -2,7 +2,6 @@ package org.soyuz.engine.collision
 
 import org.soyuz.util.Transform
 import org.soyuz.engine.shape.CircleShape
-import org.soyuz.util.Debug
 import org.soyuz.util.Vector2D
 import kotlin.math.sqrt
 
@@ -99,7 +98,7 @@ class CircleCollider(
 
         if (distSq < Vector2D.EPSILON_NORMALIZE) {
             // Point is at the center — return a point on the right edge
-            val radius = shape.radius.toDouble() * maxOf(
+            val radius = shape.radius * maxOf(
                 kotlin.math.abs(transform.scale.x),
                 kotlin.math.abs(transform.scale.y)
             )
@@ -119,7 +118,7 @@ class CircleCollider(
     /**
      * Tests whether a world-space point is inside this collider.
      */
-    fun contains(point: Vector2D, transform: Transform): Boolean {
+    override fun containsPoint(point: Vector2D, transform: Transform): Boolean {
         val center = transform.position
         val radius = shape.radius * maxOf(
             kotlin.math.abs(transform.scale.x),
@@ -145,7 +144,7 @@ class CircleCollider(
         val dist = sqrt(dx * dx + dy * dy)
 
         val radiusA = worldRadius(selfTransform)
-        val radiusB = other.shape.radius.toDouble() * maxOf(
+        val radiusB = other.shape.radius * maxOf(
             kotlin.math.abs(otherTransform.scale.x),
             kotlin.math.abs(otherTransform.scale.y)
         )

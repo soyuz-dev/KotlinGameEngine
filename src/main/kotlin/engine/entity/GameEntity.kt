@@ -1,7 +1,9 @@
 package org.soyuz.engine.entity
 
+import org.soyuz.engine.collision.Collider
 import org.soyuz.engine.render.Painter
 import org.soyuz.engine.shape.Shape2D
+import org.soyuz.engine.ui.Interactive
 import org.soyuz.util.Transform
 
 interface GameEntity {
@@ -12,6 +14,10 @@ interface GameEntity {
     var shape: Shape2D?
 
     var painter : Painter?
+
+    var collider: Collider?
+
+    var interactive: Interactive?
 
     fun onUpdate(callback: (dt: Float) -> Unit)
 

@@ -3,7 +3,6 @@ package org.soyuz.engine.collision
 import org.soyuz.util.Transform
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.util.Vector2D
-import kotlin.math.sqrt
 import kotlin.test.*
 
 class CircleColliderTest {
@@ -144,19 +143,19 @@ class CircleColliderTest {
     @Test
     fun `contains returns true for point inside circle`() {
         val t = Transform(position = Vector2D(0.0, 0.0))
-        assertTrue(smallCircle.contains(Vector2D(5.0, 0.0), t))
+        assertTrue(smallCircle.containsPoint(Vector2D(5.0, 0.0), t))
     }
 
     @Test
     fun `contains returns false for point outside circle`() {
         val t = Transform(position = Vector2D(0.0, 0.0))
-        assertFalse(smallCircle.contains(Vector2D(15.0, 0.0), t))
+        assertFalse(smallCircle.containsPoint(Vector2D(15.0, 0.0), t))
     }
 
     @Test
     fun `contains returns true for point exactly on boundary`() {
         val t = Transform(position = Vector2D(0.0, 0.0))
-        assertTrue(smallCircle.contains(Vector2D(10.0, 0.0), t))
+        assertTrue(smallCircle.containsPoint(Vector2D(10.0, 0.0), t))
     }
 
     // --- nearestPointTo ---

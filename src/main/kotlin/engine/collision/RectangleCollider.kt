@@ -89,4 +89,11 @@ class RectangleCollider(
         )
     }
 
+    override fun containsPoint(point: Vector2D, transform: Transform): Boolean {
+        val local = Transform.worldToLocal(point, transform) ?: return false
+        val halfW = shape.width / 2
+        val halfH = shape.height / 2
+        return local.x in -halfW..halfW && local.y in -halfH..halfH
+    }
+
 }

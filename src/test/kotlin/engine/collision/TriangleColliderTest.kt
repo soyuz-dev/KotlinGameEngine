@@ -178,23 +178,23 @@ class TriangleColliderTest {
 
     @Test
     fun `contains returns true for point inside triangle`() {
-        assertTrue(equiCollider.contains(Vector2D(0.0, 0.0), identity))
+        assertTrue(equiCollider.containsPoint(Vector2D(0.0, 0.0), identity))
     }
 
     @Test
     fun `contains returns false for point outside triangle`() {
-        assertFalse(equiCollider.contains(Vector2D(5.0, 0.0), identity))
+        assertFalse(equiCollider.containsPoint(Vector2D(5.0, 0.0), identity))
     }
 
     @Test
     fun `contains returns true for vertex point`() {
-        assertTrue(equiCollider.contains(Vector2D(0.0, h * 2 / 3), identity))
+        assertTrue(equiCollider.containsPoint(Vector2D(0.0, h * 2 / 3), identity))
     }
 
     @Test
     fun `contains returns true for point on edge`() {
         // Midpoint of base
-        assertTrue(equiCollider.contains(Vector2D(0.0, -h / 3), identity))
+        assertTrue(equiCollider.containsPoint(Vector2D(0.0, -h / 3), identity))
     }
 
     // ==================== World vertices ====================

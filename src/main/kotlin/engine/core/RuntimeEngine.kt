@@ -1,106 +1,72 @@
 package org.soyuz.engine.core
 
-import org.soyuz.engine.policy.EnginePolicy
+import org.soyuz.engine.physics.PhysicsSystem
+import org.soyuz.engine.render.Camera
+import org.soyuz.engine.render.RenderSystem
+import org.soyuz.engine.render.Shader
 import org.soyuz.engine.scene.Scene
+import org.soyuz.engine.ui.UISystem
+import org.soyuz.util.Dynamic
 
 class RuntimeEngine(
-    override val policy: EnginePolicy,
-    private val fixedTimeStep: Float = DEFAULT_FIXED_TIME_STEP,
-    private val maxFrameDelta: Float = DEFAULT_MAX_FRAME_DELTA
-) : Engine {
-    init {
-        require(fixedTimeStep > 0f) { "fixedTimeStep must be > 0" }
-        require(maxFrameDelta >= 0f) { "maxFrameDelta must be >= 0" }
-    }
+    private val physicsSystem: PhysicsSystem?,
+    private val renderSystem: RenderSystem,
+    private val shader: Shader,
+    private val camera: Camera
+) : Engine, Dynamic {
 
     private var running: Boolean = false
     private var currentScene: Scene? = null
-    private var initializedScene: Scene? = null
-    private var accumulator: Float = 0f
+    private var accumulator: Double = 0.0
 
     override fun loadScene(scene: Scene) {
-        if (scene === currentScene) {
-            return
-        }
-
-        currentScene?.let { previousScene ->
-            cleanupIfInitialized(previousScene)
-        }
-
+        currentScene?.cleanup()
         currentScene = scene
-        accumulator = 0f
-
+        accumulator = 0.0
         if (running) {
-            ensureSceneInitialized(scene)
+            scene.init()
         }
     }
 
     override fun start() {
-        if (running) {
-            return
-        }
-
+        if (running) return
         running = true
-        accumulator = 0f
-        currentScene?.let { scene ->
-            ensureSceneInitialized(scene)
-        }
+        accumulator = 0.0
+        currentScene?.init()
     }
 
     override fun stop() {
-        if (!running) {
-            return
-        }
-
+        if (!running) return
         running = false
-        accumulator = 0f
-        currentScene?.let { scene ->
-            cleanupIfInitialized(scene)
-        }
+        currentScene?.cleanup()
     }
 
-    override fun tick(dt: Float) {
-        if (!running) {
-            return
-        }
-
+    override fun update(dt: Float) {
+        if (!running) return
         val scene = currentScene ?: return
-        if (!dt.isFinite() || dt < 0f) {
-            return
+        if (dt <= 0f || !dt.isFinite()) return
+
+        val dtDouble = dt.toDouble()
+
+        // UI input routing
+        UISystem.update(scene.allEntities())
+
+        // Physics step
+        physicsSystem?.step(scene, dtDouble)
+
+        // Update dynamic painters
+        scene.allEntities().forEach { entity ->
+            (entity.painter as? Dynamic)?.update(dt)
         }
-
-        val frameDelta = dt.coerceIn(0f, maxFrameDelta)
-
-        accumulator += frameDelta
-        while (accumulator >= fixedTimeStep) {
-            scene.fixedUpdate(fixedTimeStep)
-            accumulator -= fixedTimeStep
-        }
-
-        val alpha = (accumulator / fixedTimeStep).coerceIn(0f, 1f)
-        scene.render(frameDelta, alpha)
     }
 
-    private fun ensureSceneInitialized(scene: Scene) {
-        if (initializedScene === scene) {
-            return
-        }
-
-        scene.init()
-        initializedScene = scene
-    }
-
-    private fun cleanupIfInitialized(scene: Scene) {
-        if (initializedScene !== scene) {
-            return
-        }
-
-        scene.cleanup()
-        initializedScene = null
+    fun render() {
+        val scene = currentScene ?: return
+        if (!running) return
+        renderSystem.render(scene, camera, shader)
     }
 
     companion object {
-        const val DEFAULT_FIXED_TIME_STEP: Float = 1f / 60f
-        const val DEFAULT_MAX_FRAME_DELTA: Float = 0.25f
+        const val DEFAULT_MAX_FRAME_DELTA: Double = 0.25
     }
 }
