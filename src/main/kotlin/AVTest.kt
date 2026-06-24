@@ -1,11 +1,7 @@
 package org.soyuz
 
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.system.MemoryUtil.NULL
 import org.soyuz.engine.audio.AudioSource
-import org.soyuz.engine.audio.AudioSystem
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.Camera
@@ -20,7 +16,6 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.ui.Interactive
 import org.soyuz.engine.ui.UI
 import org.soyuz.input.KeyListener
-import org.soyuz.input.MouseListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
 import org.soyuz.util.Transform
@@ -28,45 +23,30 @@ import org.soyuz.util.Vector2D
 import kotlin.math.sin
 
 fun main() {
-    // --- Window ---
-    if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
-    var width = 800; var height = 600
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-    val window = glfwCreateWindow(width, height, "Bump - AV Test v2", NULL, NULL)
-    if (window == NULL) throw RuntimeException("Failed to create window")
-    glfwMakeContextCurrent(window)
-    GL.createCapabilities()
-    glfwSwapInterval(0)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    AudioSystem.init()
+    val width = 800
+    val height = 600
 
-    // --- Systems ---
-    val shader = Assets.shader("default")
+    // --- Systems & Engine Setup --//
     val camera = Camera()
-    camera.setOrtho(width.toFloat(), height.toFloat())
-    val renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+
+    // The RuntimeEngine now handles all GLFW init, window hints, GL capabilities,
+    // audio initialization, and the camera's initial setOrtho projection.
     val engine = RuntimeEngine(
-        physicsSystem = null,  // no physics for this demo
-        renderSystem = renderSystem,
-        shader = shader,
+        title = "Bump - AV Test v3",
+        windowWidth = width,
+        windowHeight = height,
+        physicsSystem = null,
         camera = camera
     )
 
-    // --- Callbacks ---
-    glfwSetFramebufferSizeCallback(window) { _, w, h ->
-        width = w; height = h
-        glViewport(0, 0, width, height)
-        camera.setOrtho(width.toFloat(), height.toFloat())
-    }
-    glfwSetKeyCallback(window) { _, key, _, action, _ -> KeyListener.keyCallback(0, key, 0, action, 0) }
-    glfwSetMouseButtonCallback(window) { _, button, action, _ -> MouseListener.mouseButtonCallback(0, button, action, 0) }
-    glfwSetCursorPosCallback(window) { _, x, y -> MouseListener.mousePosCallback(0, x, y) }
-    glfwSetScrollCallback(window) { _, x, y -> MouseListener.mouseScrollCallback(0, x, y) }
 
-    // --- Scene ---
+    engine.init()
+
+
+    engine.shader = Assets.shader("default")
+    engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+
+    // --- Scene Setup ---
     val scene = RuntimeScene("av_test")
     val font = Assets.font("roboto")
 
@@ -78,11 +58,10 @@ fun main() {
     cat.interactive = Interactive.clickable(
         containsPoint = { cat.collider?.containsPoint(it, cat.transform) ?: false }
     ) {
-        val meow = AudioSource()
-        meow.play(Assets.audio("meow"))
+        AudioSource().play(Assets.audio("meow"))
     }
     cat.collider = org.soyuz.engine.collision.RectangleCollider(
-        org.soyuz.engine.shape.RectangleShape(180.0, 180.0)
+        RectangleShape(180.0, 180.0)
     )
     scene.addEntity(cat)
 
@@ -94,20 +73,19 @@ fun main() {
     dog.interactive = Interactive.clickable(
         containsPoint = { dog.collider?.containsPoint(it, dog.transform) ?: false }
     ) {
-        val bark = AudioSource()
-        bark.play(Assets.audio("bark"))
+        AudioSource().play(Assets.audio("bark"))
     }
     dog.collider = org.soyuz.engine.collision.RectangleCollider(
-        org.soyuz.engine.shape.RectangleShape(180.0, 180.0)
+        RectangleShape(180.0, 180.0)
     )
     scene.addEntity(dog)
 
     // FPS counter
-    val fpsLabel = UI.label("fps", width/2.0, 10.0, "FPS: 0", font, 20f, Color(255, 255, 255))
+    val fpsLabel = UI.label("fps", width / 2.0, 10.0, "FPS: 0", font, 20f, Color(255, 255, 255))
     scene.addEntity(fpsLabel)
 
     // Title
-    val title = UI.label("title", width / 2.0 - 150.0, 40.0, "Bump AV Test v2", font, 40f, Color(255, 200, 50))
+    val title = UI.label("title", width / 2.0, 60.0, "Bump AV Test v2", font, 40f, Color(255, 200, 255))
     scene.addEntity(title)
 
     // Pulsing circle
@@ -119,53 +97,86 @@ fun main() {
 
     // Play button
     val playBtn = UI.button("play", width / 2.0, height - 80.0, 200.0, 50.0) {
-        val click = AudioSource()
-        click.play(Assets.audio("click"))
         println("Play clicked!")
+
+        // Camera shake using the `during` interval logic
+        engine.during(500.0) { progress ->
+            val intensity = (1.0 - progress) * 20.0  // decay from 20px to 0
+            val offsetX = (Math.random() - 0.5) * intensity
+            val offsetY = (Math.random() - 0.5) * intensity * 0.2
+
+            // Note: utilizing engine.width/height dynamically bounds logic
+            // safely in case the window gets resized during the shake
+            camera.setOrtho(
+                (engine.width + offsetX).toFloat(),
+                (engine.height + offsetY).toFloat()
+            )
+        }
+        // Reset camera exactly after shake
+        engine.after(500.0) {
+            camera.setOrtho(engine.width.toFloat(), engine.height.toFloat())
+        }
     }
     scene.addEntity(playBtn)
 
-    // --- Run ---
+    // --- Logic Hooks ---
     engine.loadScene(scene)
-    engine.start()
 
+    engine.forEvery(500.0) {
+        AudioSource().play(Assets.audio("click"))
+    }
+    engine.after(1000.0) {
+        AudioSource().play(Assets.audio("meow"))
+    }
+
+    // Replace the manual `while` loop using `during` running infinitely
     var lastTime = glfwGetTime()
     var time = 0f
 
-    while (!glfwWindowShouldClose(window)) {
+    val fpsHistory = mutableListOf<Float>()
+    var fpsAccumulator = 0f
+    var fpsFrameCount = 0
+
+    engine.forever {
         val currentTime = glfwGetTime()
         val dt = (currentTime - lastTime).toFloat()
         lastTime = currentTime
         time += dt
 
-        glfwPollEvents()
-
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(window, true)
+        // Rolling FPS average over 1 second
+        fpsAccumulator += dt
+        fpsFrameCount++
+        if (fpsAccumulator >= 1f) {
+            val avgFps = fpsFrameCount / fpsAccumulator
+            fpsHistory.add(avgFps)
+            if (fpsHistory.size > 10) fpsHistory.removeAt(0) // keep last 10 samples
+            fpsAccumulator = 0f
+            fpsFrameCount = 0
         }
 
-        // Update FPS text
-        val fps = (1f / dt).toInt()
-        val fpsPainter = fpsLabel.painter as TextPainter
-        fpsPainter.text = "FPS: $fps"
-        fpsLabel.shape = RectangleShape(fpsPainter.texture?.width?.toDouble() ?: 100.0,
-            fpsPainter.texture?.height?.toDouble() ?: 30.0)
+        val displayFps = if (fpsHistory.isNotEmpty()) {
+            fpsHistory.average().toFloat()
+        } else {
+            if (dt > 0) (1f / dt) else 0f
+        }
 
-        // Pulse circle
+        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+            glfwSetWindowShouldClose(engine.window, true)
+        }
+
+        val fpsPainter = fpsLabel.painter as TextPainter
+        fpsPainter.text = "FPS: ${displayFps.toInt()}"
+        fpsLabel.shape = RectangleShape(
+            fpsPainter.texture?.width?.toDouble() ?: 100.0,
+            fpsPainter.texture?.height?.toDouble() ?: 30.0
+        )
+
         val pulse = 1.0 + sin(time * 3.0) * 0.3
         circle.shape = CircleShape(60.0 * pulse)
-
-        engine.update(dt)
-        engine.render()
-
-        glfwSwapBuffers(window)
-        KeyListener.endFrame()
-        MouseListener.endFrame()
     }
 
-    engine.stop()
-    AudioSystem.cleanup()
-    Assets.cleanup()
-    glfwDestroyWindow(window)
-    glfwTerminate()
+    // --- Run Loop ---
+    // Start game execution. It automatically blocks, polls, updates,
+    // renders, handles timers, and then cleans up everything.
+    engine.run()
 }

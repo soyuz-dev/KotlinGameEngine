@@ -49,6 +49,12 @@ object UI {
         painter.text = text
         painter.color = color
         label.painter = painter
+        painter.update(0f)  // force initial rasterize
+        label.shape = RectangleShape(
+            painter.texture?.width?.toDouble() ?: 100.0,
+            painter.texture?.height?.toDouble() ?: 30.0
+        )
+        return label
         // shape set after first rasterize
         return label
     }

@@ -13,7 +13,7 @@ repositories {
 }
 
 application {
-    mainClass.set("org.soyuz.MainKt")
+    mainClass.set("org.soyuz.AVTestKt")
 }
 
 val lwjglV = "3.3.3"
@@ -56,7 +56,7 @@ tasks.test {
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "org.soyuz.MainKt"
+        attributes["Main-Class"] = "org.soyuz.AVTestKt"
     }
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

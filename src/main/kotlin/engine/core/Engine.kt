@@ -6,4 +6,5 @@ interface Engine {
     fun loadScene(scene: Scene)
     fun start()
     fun stop()
+    fun run()
 }
