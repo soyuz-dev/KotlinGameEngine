@@ -1,10 +1,13 @@
 package org.soyuz.engine.ui
 
+import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.entity.DefaultGameEntity
+import org.soyuz.engine.render.Painter
 import org.soyuz.engine.render.SolidColor
 import org.soyuz.engine.render.text.Font
 import org.soyuz.engine.render.text.TextPainter
+import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.util.Color
 import org.soyuz.util.Transform
@@ -56,6 +59,67 @@ object UI {
         )
         return label
         // shape set after first rasterize
-        return label
+    }
+
+    fun slider(
+        id: String,
+        x: Double, y: Double,
+        width: Double, height: Double,
+        min: Double = 0.0, max: Double = 1.0,
+        initial: Double = 0.5,
+        onValueChanged: (Double) -> Unit = {}
+    ): Pair<DefaultGameEntity, DefaultGameEntity> {
+        // Track
+        val track = DefaultGameEntity("${id}_track")
+        track.transform = Transform(position = Vector2D(x, y))
+        track.shape = RectangleShape(width, height)
+        track.painter = SolidColor(Color(80, 80, 80))
+
+        // Thumb
+        val thumbRadius = height * 0.6
+        val thumbX = x - width / 2 + (initial / (max - min)) * width
+        val thumb = DefaultGameEntity("${id}_thumb")
+        thumb.transform = Transform(position = Vector2D(thumbX, y))
+        thumb.shape = CircleShape(thumbRadius)
+        thumb.painter = SolidColor(Color(200, 200, 200))
+        thumb.collider = CircleCollider(CircleShape(thumbRadius))
+
+        // Draggable logic
+        var currentValue = initial
+        thumb.interactive = Interactive
+            .clickable(containsPoint = { thumb.collider!!.containsPoint(it, thumb.transform) }) { }
+            .draggable(
+                onDrag = { _, currentPos ->
+                    val clampedX = currentPos.x.coerceIn(x - width / 2, x + width / 2)
+                    thumb.position = Vector2D(clampedX, y)
+                    currentValue = min + (clampedX - (x - width / 2)) / width * (max - min)
+                    onValueChanged(currentValue)
+                }
+            )
+
+        return track to thumb
+    }
+
+    fun draggablePanel(
+        id: String,
+        x: Double, y: Double,
+        width: Double, height: Double,
+        painter: Painter
+    ): DefaultGameEntity {
+        val panel = DefaultGameEntity(id)
+        panel.transform = Transform(position = Vector2D(x, y))
+        panel.shape = RectangleShape(width, height)
+        panel.painter = painter
+        panel.collider = RectangleCollider(RectangleShape(width, height))
+
+        panel.interactive = Interactive
+            .clickable(containsPoint = { panel.collider!!.containsPoint(it, panel.transform) }) { }
+            .draggable(
+                onDrag = { _, currentPos ->
+                    panel.transform = panel.transform.copy(position = currentPos)
+                }
+            )
+
+        return panel
     }
 }

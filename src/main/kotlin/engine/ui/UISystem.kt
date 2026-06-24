@@ -61,7 +61,7 @@ object UISystem {
         if (pressedId != null && Input.isMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
             val pressed = entities.find { it.id == pressedId }
             if (pressed != null) {
-                if (dragId == null && mouseDelta.length() > 3.0) {
+                if (dragId == null && mouseDelta.length() > 1.0) {
                     dragId = pressedId
                     pressed.interactive?.onDragStart(GLFW_MOUSE_BUTTON_LEFT, dragStartPos)
                     states[dragId]?.let {

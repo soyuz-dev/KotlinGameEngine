@@ -210,21 +210,3 @@ fun Interactive.doubleClickable(onDoubleClick: () -> Unit): Interactive {
         }
     }
 }
-
-// ===== Usage Example =====
-/*
-val myButton: Interactive = /* ... */
-    .clickable { println("Clicked!") }
-    .hoverable(
-        onHoverEnter = { println("Hovering") },
-        onHoverExit = { println("Left") }
-    )
-    .draggable(
-        onDragStart = { button, pos -> println("Drag started at $pos") }
-    )
-    .scrollable { dx, dy -> println("Scrolled: $dx, $dy") }
-    .focusable(
-        onFocusGained = { println("Focused") },
-        onFocusLost = { println("Unfocused") }
-    )
-*/

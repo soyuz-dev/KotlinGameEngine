@@ -20,6 +20,20 @@ class DefaultGameEntity(
     private val updateCallbacks = mutableListOf<GameEntityUpdateCallback>()
     private val collisionCallbacks = mutableListOf<(other: GameEntity) -> Unit>()
 
+    var position: Vector2D
+        get() = transform.position
+        set(value) {
+            transform = transform.copy(position = value)
+            positionListeners.forEach { it(value) }
+        }
+
+    var rotation: Double
+        get() = transform.rotationRadians
+        set(value) {
+            transform = transform.copy(rotationRadians = value)
+            rotationListeners.forEach { it(value) }
+        }
+
 
     override fun onUpdate(callback: (dt: Float) -> Unit) {
         updateCallbacks.add { _, dt -> callback(dt) }
@@ -51,5 +65,18 @@ class DefaultGameEntity(
 
     fun turnTo(rotationRadians: Double) {
         this.transform = this.transform.copy(rotationRadians = rotationRadians)
+    }
+
+    private val positionListeners = mutableListOf<(Vector2D) -> Unit>()
+    private val rotationListeners = mutableListOf<(Double) -> Unit>()
+
+    fun onPositionChanged(callback: (Vector2D) -> Unit) {
+        positionListeners.add(callback)
+        callback(position) // fire immediately with current value
+    }
+
+    fun onRotationChanged(callback: (Double) -> Unit) {
+        rotationListeners.add(callback)
+        callback(rotation)
     }
 }
