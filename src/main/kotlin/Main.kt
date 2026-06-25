@@ -1,94 +1,54 @@
 package org.soyuz
 
-import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.system.MemoryUtil.NULL
+import org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT
 import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.collision.RuntimeCollisionSystem
+import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
-import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
 import org.soyuz.engine.physics.forcefields.ConstantAccelerationField
-import org.soyuz.engine.physics.forcefields.ConstantForceField
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
+import org.soyuz.engine.render.RuntimeRenderSystem
 import org.soyuz.engine.render.SolidColor
-import org.soyuz.engine.render.image.ImagePainter
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
-import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
 import org.soyuz.util.Assets
-import org.soyuz.util.MathUtil
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
 
 fun main() {
-    if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
+    val width = 800
+    val height = 800
 
-    var width = 800
-    var height = 800
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-
-    val window = glfwCreateWindow(width, height, "Bump", NULL, NULL)
-    if (window == NULL) throw RuntimeException("Failed to create window")
-
-    glfwMakeContextCurrent(window)
-    GL.createCapabilities()
-    glfwSwapInterval(0)
-
-    println("OpenGL ${glGetString(GL_VERSION)}")
-
-    // --- Renderer setup ---
-    val shader = Assets.shader("default")
     val camera = Camera()
-    camera.setOrtho(width.toFloat(), height.toFloat())
-    val quadMesh = Mesh.quad()
-    val circleMesh = Mesh.circle(32)
-
-    // --- Framebuffer size callback ---
-    glfwSetFramebufferSizeCallback(window) { _, w, h ->
-        width = w
-        height = h
-        glViewport(0, 0, width, height)
-        camera.setOrtho(width.toFloat(), height.toFloat())
-    }
-
-    // --- Input callbacks ---
-    glfwSetKeyCallback(window) { _, key, _, action, _ ->
-        KeyListener.keyCallback(0, key, 0, action, 0)
-    }
-    glfwSetMouseButtonCallback(window) { _, button, action, _ ->
-        MouseListener.mouseButtonCallback(0, button, action, 0)
-    }
-    glfwSetCursorPosCallback(window) { _, x, y ->
-        MouseListener.mousePosCallback(0, x, y)
-    }
-    glfwSetScrollCallback(window) { _, x, y ->
-        MouseListener.mouseScrollCallback(0, x, y)
-    }
-
-    // --- Physics setup ---
     val collisionSystem = RuntimeCollisionSystem()
     val eventBus = RuntimeEventBus()
     val physicsSystem = RuntimePhysicsSystem(collisionSystem, eventBus)
-    val scene = RuntimeScene("main")
-    val gravity = ConstantAccelerationField(Vector2D(0.0, 981.0))
 
+    val engine = RuntimeEngine(
+        title = "Bump - BrickPit",
+        windowWidth = width,
+        windowHeight = height,
+        physicsSystem = physicsSystem,
+        camera = camera
+    )
+    engine.init()
+    engine.shader = Assets.shader("default")
+    engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+
+    val scene = RuntimeScene("brickpit")
+    val gravity = ConstantAccelerationField(Vector2D(0.0, 981.0))
     var entityCount = 0
 
     fun makeBall(x: Double, y: Double, vx: Double, vy: Double, mass: Double = 1.0, radius: Double = 10.0, restitution: Double = 0.8) {
         val id = "ball_${entityCount++}"
         val ball = DefaultGameEntity(id)
-        ball.goto(position = Vector2D(x, y))
+        ball.position = Vector2D(x, y)
         ball.shape = CircleShape(radius)
         ball.painter = SolidColor(Math.random(), Math.random(), Math.random(), 1.0)
         val body = PointMass(mass = mass, restitution = restitution)
@@ -103,15 +63,13 @@ fun main() {
     fun makeBrick(x: Double, y: Double, vx: Double, vy: Double, w: Double = 40.0, h: Double = 30.0, mass: Double = 1.0, angVel: Double = 0.0, restitution: Double = 0.5) {
         val id = "brick_${entityCount++}"
         val brick = DefaultGameEntity(id)
-        brick.goto(position = Vector2D(x, y))
+        brick.position = Vector2D(x, y)
         brick.shape = RectangleShape(w, h)
-        brick.painter = SolidColor(0.8, 0.4, 0.1, 1.0) // orange-brown brick color
-
+        brick.painter = SolidColor(0.8, 0.4, 0.1, 1.0)
         val body = RigidBody(mass = mass, restitution = restitution, friction = 0.4, width = w, height = h)
         body.addField(gravity)
         body.velocity = Vector2D(vx, vy)
         body.angularVelocity = angVel
-
         val collider = RectangleCollider(RectangleShape(w, h))
         physicsSystem.registerBody(id, body)
         collisionSystem.registerCollider(id, collider)
@@ -120,7 +78,7 @@ fun main() {
 
     fun createWall(id: String, x: Double, y: Double, w: Double, h: Double) {
         val wall = DefaultGameEntity(id)
-        wall.goto(Vector2D(x, y))
+        wall.position = Vector2D(x, y)
         wall.shape = RectangleShape(w, h)
         wall.painter = SolidColor(0.2, 0.2, 0.3, 1.0)
         val wallBody = PointMass(mass = 0.0, restitution = 0.6)
@@ -136,28 +94,10 @@ fun main() {
     createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness * 1.5)
     createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness * 1.5)
 
-    // Spawn some bricks with spin
-
-    // Spawn some balls for chaos
     makeBall(width / 3.0, height / 2.0, 200.0, -500.0, mass = 0.5, radius = 8.0)
     makeBall(2 * width / 3.0, height / 2.0, -200.0, -300.0, mass = 0.5, radius = 8.0)
 
-    // --- Main loop ---
-    var lastTime = glfwGetTime()
-
-    while (!glfwWindowShouldClose(window)) {
-        val pos = MouseListener.getPos()
-        val currentTime = glfwGetTime()
-        val rawDt = currentTime - lastTime
-        lastTime = currentTime
-        val dt = minOf(rawDt, 0.02)
-
-        glfwSetWindowTitle(window, "Bump! | Mouse: (${"%.0f".format(pos.x)}, ${"%.0f".format(pos.y)}) | fps: ${"%.0f".format(1.0 / dt)}")
-
-        physicsSystem.step(scene, dt)
-        glfwPollEvents()
-
-        // Spawn on click
+    engine.forever {
         if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             val mPos = MouseListener.getPos()
             if (Math.random() < 0.5) {
@@ -174,39 +114,8 @@ fun main() {
                 makeBrick(mPos.x, mPos.y, vx, vy, w = w, h = h, mass = 0.5 + Math.random() * 2.0, angVel = angVel)
             }
         }
-
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
-        glClear(GL_COLOR_BUFFER_BIT)
-
-        shader.bind()
-        shader.setProjection(camera.getProjection())
-
-        // Draw all entities
-        for (entity in scene.allEntities()) {
-            when (entity.shape) {
-                is CircleShape -> {
-                    shader.setModel(MathUtil.modelMatrix(entity.transform.copy(
-                        scale = Vector2D((entity.shape as CircleShape).radius * 2, (entity.shape as CircleShape).radius * 2)
-                    )))
-                    entity.painter?.bind(shader) ?: shader.setColor(1f, 0f, 1f, 1f)
-                    circleMesh.draw()
-                }
-                is RectangleShape -> {
-                    shader.setModel(MathUtil.modelMatrix(entity.transform.copy(
-                        scale = Vector2D((entity.shape as RectangleShape).width, (entity.shape as RectangleShape).height)
-                    )))
-                    entity.painter?.bind(shader) ?: shader.setColor(0.2f, 0.2f, 0.3f, 1f)
-                    quadMesh.draw()
-                }
-                else -> {}
-            }
-        }
-
-        glfwSwapBuffers(window)
-        KeyListener.endFrame()
-        MouseListener.endFrame()
     }
 
-    glfwDestroyWindow(window)
-    glfwTerminate()
+    engine.loadScene(scene)
+    engine.run()
 }
