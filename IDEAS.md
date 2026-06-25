@@ -33,9 +33,6 @@ Glue two bodies together at a fixed relative offset. Zero degrees of freedom. Us
 ### Debug drawing layer
 Toggleable overlay for colliders, contact points, normals, AABBs, velocity vectors. Press a key to show/hide. Critical for physics debugging.
 
-### Camera shake on impact
-Camera entity responds to `CollisionEvent` with a decaying positional offset. Window edge hits, explosions, heavy landings.
-
 ### PainterModifier chain
 ```kotlin
 painter = SolidColor(1.0, 0.3, 0.1) + OpacityModifier(0.8) + TintModifier(0.2, 0.0, 0.1)
@@ -52,20 +49,20 @@ Entities sorted by layer before drawing. Background, game, foreground, UI. Preve
 
 ## UI System
 
-### Slider component
-`UI.slider(id, x, y, width, min, max, initial)` — draggable thumb on a track. Fires `onValueChanged`. Uses `Interactive.draggable` internally.
+### Text input field
+Focusable text field entity. Captures keyboard input via `Interactive.keyboardInput`. Renders text with blinking cursor. Returns value on enter or focus loss.
 
-### Text input
-`UI.textInput(id, x, y, width, font)` — focusable text field. Captures keyboard input via `Interactive.keyboardInput`. Renders text with cursor.
+### Checkbox / Toggle
+Clickable entity with on/off state. `UI.toggle(id, x, y, initial) { value -> ... }`. Uses observable state internally.
+
+### Dropdown / Context menu
+List of options that appears on click. Uses `Interactive` for each item. Renders on top of other elements.
 
 ### Layout system
-Flexbox-like or anchor-based layout. UI elements position relative to parent or screen edges. Needed for menus and HUD. `UI.hbox { }`, `UI.vbox { }` builders.
+Flexbox-like or anchor-based layout. UI elements position relative to parent or screen edges. `UI.hbox { }`, `UI.vbox { }` builders.
 
 ### UI themes
 Predefined color schemes and painter configurations. `UI.theme = Theme.DARK` applies consistent styling to all UI factory elements.
-
-### Dropdown / context menu
-List of options that appears on click. Uses `Interactive` for each item. Renders on top of other elements.
 
 ---
 
@@ -80,18 +77,24 @@ Pre-configured entity blueprints (bouncy ball, heavy box, static wall, attractor
 ### Prefabs
 Reusable entity definitions. Instantiate with overrides. `prefab("bouncy_ball") { position(100, 200); velocity(300, 0) }`
 
+### Child entities
+Optional parent-child relationships. World transform computed by walking up the tree. Cleanup cascades. Useful for compound objects and complex UI.
+
 ---
 
 ## Systems
 
 ### Broadphase (spatial hash)
-Replace O(n²) collision detection with spatial partitioning. Divide world into grid cells, only check pairs in same or adjacent cells. (Bounding circle broadphase already implemented — spatial hash is the next tier.)
+Replace O(n²) collision detection with spatial partitioning. Divide world into grid cells, only check pairs in same or adjacent cells. (Bounding circle broadphase already implemented.)
 
 ### Serialization
 Scene save/load. Serialize entity graph, transforms, colliders, physics bodies. JSON or a custom binary format. Needed for level editing later.
 
 ### Profiling / metrics overlay
-FPS, frame time, body count, collision pairs checked, force calculations skipped (via bit-hack counter). Useful for tuning the threshold in `GravityField`. (FPS counter via `TextPainter` already working.)
+FPS, frame time, body count, collision pairs checked, force calculations skipped (via bit-hack counter). Useful for tuning the threshold in `GravityField`.
+
+### Property bindings
+Formalize the observable entity pattern into a `Binding<T>` system. `label.position bind panel.position + offset`. Animated transitions between values.
 
 ---
 
@@ -104,7 +107,7 @@ Physics step runs on a worker thread while main thread handles GLFW events + ren
 Run without a window for unit testing physics, AI, or server-side simulation. No GLFW dependency.
 
 ### WebAssembly target
-Kotlin/Wasm + WebGL. Bump in the browser. Very much a long-term fever dream.
+Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 
 ---
 
@@ -137,7 +140,11 @@ Kotlin/Wasm + WebGL. Bump in the browser. Very much a long-term fever dream.
 - [x] Color utility class
 - [x] UI System with Interactive decorator chain (clickable, hoverable, draggable, scrollable, focusable, doubleClickable)
 - [x] UISystem input router with hover/press/drag/focus/scroll state management
-- [x] UI factory (button, label convenience functions)
+- [x] UI factory (button, label, slider convenience functions)
 - [x] RuntimeEngine orchestrating UI → Physics → Dynamics → Render
 - [x] RenderSystem abstraction
 - [x] Dynamic interface for per-frame update dispatch
+- [x] Observable entity properties (onPositionChanged, onRotationChanged)
+- [x] Camera shake effect via engine.during()
+- [x] Engine timer system (forever, forEvery, after, during)
+- [x] GLFW fully encapsulated in RuntimeEngine
