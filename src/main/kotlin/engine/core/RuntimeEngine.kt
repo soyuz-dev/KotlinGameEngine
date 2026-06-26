@@ -98,6 +98,14 @@ class RuntimeEngine(
         glfwSetScrollCallback(window) { _, x, y ->
             MouseListener.mouseScrollCallback(0, x, y)
         }
+        glfwSetCharCallback(window) { _, codepoint ->
+            onChar(codepoint.toChar())
+        }
+    }
+
+    fun onChar(char: Char) {
+        val scene = currentScene ?: return
+        UISystem.handleChar(char, scene.allEntities())
     }
 
     fun forEvery(ms: Double, callback: () -> Unit) {

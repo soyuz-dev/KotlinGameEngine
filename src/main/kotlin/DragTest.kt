@@ -41,21 +41,6 @@ fun main() {
     val scene = RuntimeScene("drag_test")
     val font = Assets.font("roboto")
 
-    // --- Draggable panel ---
-    val panel = DefaultGameEntity("panel")
-    panel.transform = Transform(position = Vector2D(width / 2.0, height / 2.0))
-    panel.shape = RectangleShape(200.0, 150.0)
-    panel.painter = ImagePainter(Assets.texture("cat"))
-    panel.collider = RectangleCollider(RectangleShape(200.0, 150.0))
-    panel.interactive = Interactive
-        .empty {
-            panel.collider!!.containsPoint(it, panel.transform)
-        }
-        .draggable(onDrag = { _, currentPos -> panel.position = currentPos },)
-    scene.addEntity(panel)
-    // Panel title
-    val panelTitle = UI.label("panel_title", width / 2.0, height / 2.0 - 50.0, "Drag me!", font, 18f, Color(255, 255, 255))
-    scene.addEntity(panelTitle)
     // Volume label
     val volumeLabel = UI.label("volume_label", width / 2.0, height - 130.0, "Volume: 50%", font, 16f, Color(200, 200, 200))
     scene.addEntity(volumeLabel)
@@ -93,12 +78,21 @@ fun main() {
     // Instructions
     val instrLabel = UI.label("instr", width / 2.0, 20.0, "Drag the panel, circle, and slider | ESC to exit", font, 14f, Color(150, 150, 150))
     scene.addEntity(instrLabel)
-    panel.onPositionChanged { pos ->
-        panelTitle.position = pos + Vector2D(0.0, -50.0)
-    }
+
+
     circle.onPositionChanged { pos ->
         circleLabel.position = pos + Vector2D(0.0, -50.0)
     }
+
+    val nameInput = UI.textInput("name", 400.0, 300.0, font = font, placeholder = "Enter name...", background = SolidColor(Color.random())) { text ->
+        println("Submitted: $text")
+    }
+    scene.addEntity(nameInput)
+
+    engine.forEvery(500.0) {
+        nameInput.toggleCursor()
+    }
+
     engine.loadScene(scene)
     engine.run()
 }

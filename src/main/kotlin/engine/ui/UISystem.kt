@@ -49,11 +49,29 @@ object UISystem {
 
         // --- Press ---
         if (Input.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-            hit?.let {
-                it.interactive?.onPress(GLFW_MOUSE_BUTTON_LEFT)
-                states.getOrPut(it.id) { UIState() }.addPressedButton(GLFW_MOUSE_BUTTON_LEFT)
-                pressedId = it.id
+            if (hit != null) {
+                // Focus on press
+                if (hit.id != focusedId) {
+                    focusedId?.let { fid ->
+                        entities.find { it.id == fid }?.interactive?.onFocusLost()
+                        states[fid]?.isFocused = false
+                    }
+                    hit.interactive?.onFocusGained()
+                    states[hit.id]?.isFocused = true
+                    focusedId = hit.id
+                }
+
+                hit.interactive?.onPress(GLFW_MOUSE_BUTTON_LEFT)
+                states.getOrPut(hit.id) { UIState() }.addPressedButton(GLFW_MOUSE_BUTTON_LEFT)
+                pressedId = hit.id
                 dragStartPos = mousePos
+            } else {
+                // Clicked empty space — lose focus
+                focusedId?.let { fid ->
+                    entities.find { it.id == fid }?.interactive?.onFocusLost()
+                    states[fid]?.isFocused = false
+                }
+                focusedId = null
             }
         }
 
@@ -84,7 +102,7 @@ object UISystem {
                 states[id]?.removePressedButton(GLFW_MOUSE_BUTTON_LEFT)
             }
 
-            // Click
+            // Click (only if pressed and released on same entity)
             if (pressedId != null && pressedId == hit?.id) {
                 hit?.interactive?.onClick(GLFW_MOUSE_BUTTON_LEFT)
 
@@ -98,17 +116,6 @@ object UISystem {
                 lastClickTime = now
                 lastClickId = pressedId
                 lastClickButton = GLFW_MOUSE_BUTTON_LEFT
-
-                // Focus
-                if (pressedId != focusedId) {
-                    focusedId?.let { fid ->
-                        entities.find { it.id == fid }?.interactive?.onFocusLost()
-                        states[fid]?.isFocused = false
-                    }
-                    hit?.interactive?.onFocusGained()
-                    states[pressedId]?.isFocused = true
-                    focusedId = pressedId
-                }
             }
 
             // End drag
@@ -125,7 +132,6 @@ object UISystem {
         }
 
         // --- Keyboard ---
-        // Route key events to focused entity
         val focused = focusedId?.let { id -> entities.find { it.id == id } }
         for (key in 0..348) {
             if (Input.isKeyJustPressed(key)) focused?.interactive?.onKeyPress(key)
@@ -134,4 +140,9 @@ object UISystem {
     }
 
     fun getState(entityId: String): UIState = states.getOrPut(entityId) { UIState() }
+
+    fun handleChar(char: Char, entities: List<GameEntity>) {
+        println("char typed: $char")
+        focusedId?.let { id -> entities.find { it.id == id } }?.interactive?.onCharTyped(char)
+    }
 }

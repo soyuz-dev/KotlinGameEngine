@@ -122,4 +122,18 @@ object UI {
 
         return panel
     }
+
+    fun textInput(
+        id: String, x: Double, y: Double,
+        width: Double = 200.0,
+        font: Font, fontSize: Float = 18f,
+        background: Painter = SolidColor(Color(40, 40, 50)),
+        placeholder: String = "",
+        onSubmit: (String) -> Unit = {},
+        onTextChanged: (String) -> Unit = {}
+    ): TextInputEntity {
+        val input = TextInputEntity(id, width, font, fontSize, background, placeholder, onSubmit)
+        input.position = Vector2D(x, y)
+        return input
+    }
 }

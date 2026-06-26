@@ -9,7 +9,7 @@ import org.soyuz.util.Vector2D
 
 typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 
-class DefaultGameEntity(
+open class DefaultGameEntity(
     override val id: String,
     override var transform: Transform = Transform(),
     override var shape: Shape2D? = null,
