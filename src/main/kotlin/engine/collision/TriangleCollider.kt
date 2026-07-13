@@ -211,7 +211,7 @@ class TriangleCollider(
     }
 
     override fun boundingCircle(transform: Transform): Pair<Vector2D, Double> {
-        return transform.position to shape.supportRadius() * maxOf(
+        return transform.position to shape.boundingRadius() * maxOf(
             kotlin.math.abs(transform.scale.x),
             kotlin.math.abs(transform.scale.y)
         )

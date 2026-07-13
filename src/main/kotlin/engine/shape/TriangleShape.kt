@@ -20,7 +20,7 @@ data class TriangleShape(
         return Aabb2D(minX, minY, maxX, maxY)
     }
 
-    override fun supportRadius(): Double {
+    override fun boundingRadius(): Double {
         val center = Vector2D((a.x + b.x + c.x) / 3, (a.y + b.y + c.y) / 3)
         return maxOf(
             (a - center).length(),

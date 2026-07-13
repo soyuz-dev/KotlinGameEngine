@@ -16,5 +16,5 @@ data class CircleShape(
         maxY = radius
     )
 
-    override fun supportRadius(): Double = radius
+    override fun boundingRadius(): Double = radius
 }

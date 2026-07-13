@@ -25,7 +25,7 @@ data class RectangleShape(
         )
     }
 
-    override fun supportRadius(): Double {
+    override fun boundingRadius(): Double {
         val halfWidth = width * 0.5f
         val halfHeight = height * 0.5f
         return sqrt(halfWidth * halfWidth + halfHeight * halfHeight)
