@@ -1,5 +1,7 @@
 package org.soyuz
 
+import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.Camera
@@ -17,8 +19,10 @@ import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.render.image.ImagePainter
 import org.soyuz.engine.ui.draggable
 import org.soyuz.engine.ui.hoverable
+import org.soyuz.input.KeyListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
+import org.soyuz.util.Dynamic
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
 
@@ -76,7 +80,7 @@ fun main() {
     val circleLabel = UI.label("circle_label", 150.0, 80.0, "Drag the circle too!", font, 14f, Color(200, 200, 200))
     scene.addEntity(circleLabel)
     // Instructions
-    val instrLabel = UI.label("instr", width / 2.0, 20.0, "Drag the panel, circle, and slider | ESC to exit", font, 14f, Color(150, 150, 150))
+    val instrLabel = UI.label("instr", width / 2.0, 20.0, "Drag the circle, and slider. And also type in your name!", font, 14f, Color(150, 150, 150))
     scene.addEntity(instrLabel)
 
 
@@ -84,13 +88,26 @@ fun main() {
         circleLabel.position = pos + Vector2D(0.0, -50.0)
     }
 
-    val nameInput = UI.textInput("name", 400.0, 300.0, font = font, placeholder = "Enter name...", background = SolidColor(Color.random())) { text ->
-        println("Submitted: $text")
+    val nameLabel = UI.label("namelabel", width / 2.0, 600.0, "where", font, 14f, Color(150, 150, 150))
+    scene.addEntity(instrLabel)
+
+
+    val (nameInput, nameInputBG) = UI.textInput("name", 400.0, 300.0, font = font, placeholder = "Enter name...", background = SolidColor(Color(60, 10, 30))) { text ->
+        (nameLabel.painter as? TextPainter)?.text = text
+        (nameLabel.painter as? Dynamic)?.update(.0f)
     }
+
+    scene.addEntity(nameInputBG)
     scene.addEntity(nameInput)
 
-    engine.forEvery(500.0) {
+    engine.forEvery(200.0) {
         nameInput.toggleCursor()
+    }
+
+    engine.forever {
+        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+            glfwSetWindowShouldClose(engine.window, true)
+        }
     }
 
     engine.loadScene(scene)

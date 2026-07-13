@@ -131,9 +131,17 @@ object UI {
         placeholder: String = "",
         onSubmit: (String) -> Unit = {},
         onTextChanged: (String) -> Unit = {}
-    ): TextInputEntity {
-        val input = TextInputEntity(id, width, font, fontSize, background, placeholder, onSubmit)
+    ): Pair<TextInputEntity, DefaultGameEntity> {
+        val input = TextInputEntity(id, width, font, fontSize, placeholder, onSubmit, onTextChanged)
         input.position = Vector2D(x, y)
-        return input
+        val entity = DefaultGameEntity("bg_$id", shape = input.shape, painter = background)
+        input.onPositionChanged {
+            entity.position = it
+        }
+        input.onShapeChanged {
+            entity.shape = it
+        }
+
+        return input to entity
     }
 }

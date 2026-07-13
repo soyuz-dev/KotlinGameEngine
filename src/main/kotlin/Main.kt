@@ -1,11 +1,13 @@
 package org.soyuz
 
 import org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT
+import org.soyuz.engine.audio.AudioSource
 import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
+import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
 import org.soyuz.engine.physics.forcefields.ConstantAccelerationField
@@ -16,10 +18,12 @@ import org.soyuz.engine.render.SolidColor
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
+import org.soyuz.engine.ui.Interactive
 import org.soyuz.input.MouseListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
+import kotlin.math.roundToInt
 
 fun main() {
     val width = 800
@@ -41,11 +45,23 @@ fun main() {
     engine.shader = Assets.shader("default")
     engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
 
+    val sound = AudioSource()
+
+
+    fun callback(collisionEvent: CollisionEvent) {
+        if(collisionEvent.sourceEntityId.startsWith("wall") && collisionEvent.otherEntityId.startsWith("wall")) return
+        if(collisionEvent.sourceEntityId.startsWith("brick") || collisionEvent.otherEntityId.startsWith("brick")) return
+        println("Bump! ${collisionEvent.sourceEntityId} hit ${collisionEvent.otherEntityId}")
+        sound.play(Assets.audio("click"))
+    }
+
+    eventBus.subscribe(CollisionEvent::class.java, ::callback)
+
     val scene = RuntimeScene("brickpit")
     val gravity = ConstantAccelerationField(Vector2D(0.0, 981.0))
     var entityCount = 0
 
-    fun makeBall(x: Double, y: Double, vx: Double, vy: Double, mass: Double = 1.0, radius: Double = 10.0, restitution: Double = 0.8) {
+    fun makeBall(x: Double, y: Double, vx: Double, vy: Double, mass: Double = 1.0, radius: Double = 10.0, restitution: Double = .7) {
         val id = "ball_${entityCount++}"
         val ball = DefaultGameEntity(id)
         ball.position = Vector2D(x, y)
@@ -55,6 +71,10 @@ fun main() {
         body.addField(gravity)
         body.velocity = Vector2D(vx, vy)
         val collider = CircleCollider(CircleShape(radius))
+        ball.interactive = Interactive.draggable(
+            containsPoint = {collider.containsPoint(it, ball.transform)},
+            onDrag = { _, currentPos ->  ball.position = currentPos; body.velocity = Vector2D.ZERO }
+        )
         physicsSystem.registerBody(id, body)
         collisionSystem.registerCollider(id, collider)
         scene.addEntity(ball)
@@ -71,6 +91,10 @@ fun main() {
         body.velocity = Vector2D(vx, vy)
         body.angularVelocity = angVel
         val collider = RectangleCollider(RectangleShape(w, h))
+        brick.interactive = Interactive.draggable(
+            containsPoint = {collider.containsPoint(it, brick.transform)},
+            onDrag = { _, currentPos ->  brick.position = currentPos; body.velocity = Vector2D.ZERO }
+        )
         physicsSystem.registerBody(id, body)
         collisionSystem.registerCollider(id, collider)
         scene.addEntity(brick)
@@ -81,7 +105,7 @@ fun main() {
         wall.position = Vector2D(x, y)
         wall.shape = RectangleShape(w, h)
         wall.painter = SolidColor(0.2, 0.2, 0.3, 1.0)
-        val wallBody = PointMass(mass = 0.0, restitution = 0.6)
+        val wallBody = PointMass(mass = 0.0, restitution = 1.0)
         val wallCollider = RectangleCollider(RectangleShape(w, h))
         physicsSystem.registerBody(id, wallBody)
         collisionSystem.registerCollider(id, wallCollider)
@@ -89,10 +113,10 @@ fun main() {
     }
 
     val wallThickness = 100.0
-    createWall("left",   -wallThickness / 2, height / 2.0, wallThickness * 1.5, height.toDouble())
-    createWall("right",   width + wallThickness / 2, height / 2.0, wallThickness * 1.5, height.toDouble())
-    createWall("top",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness * 1.5)
-    createWall("bottom",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness * 1.5)
+    createWall("wall_0",   -wallThickness / 2, height / 2.0, wallThickness * 1.5, height.toDouble())
+    createWall("wall_1",   width + wallThickness / 2, height / 2.0, wallThickness * 1.5, height.toDouble())
+    createWall("wall_2",     width / 2.0, -wallThickness / 2, width.toDouble(), wallThickness * 1.5)
+    createWall("wall_3",  width / 2.0, height + wallThickness / 2, width.toDouble(), wallThickness * 1.5)
 
     makeBall(width / 3.0, height / 2.0, 200.0, -500.0, mass = 0.5, radius = 8.0)
     makeBall(2 * width / 3.0, height / 2.0, -200.0, -300.0, mass = 0.5, radius = 8.0)
@@ -114,6 +138,7 @@ fun main() {
                 makeBrick(mPos.x, mPos.y, vx, vy, w = w, h = h, mass = 0.5 + Math.random() * 2.0, angVel = angVel)
             }
         }
+        engine.title = "Bump!   Thinguses:$entityCount, fps: ${(1/it).roundToInt()}"
     }
 
     engine.loadScene(scene)

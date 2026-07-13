@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL11.glClearColor
 import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
+import org.soyuz.engine.shape.TriangleShape
 import org.soyuz.util.MathUtil
 import org.soyuz.util.Vector2D
 
@@ -41,6 +42,11 @@ class RuntimeRenderSystem(
                     )))
                     entity.painter?.bind(shader) ?: shader.setColor(1f, 0f, 1f, 1f)
                     quadMesh.draw()
+                }
+                is TriangleShape -> {
+                    shader.setModel(MathUtil.modelMatrix(entity.transform))
+                    entity.painter?.bind(shader) ?: shader.setColor(1f, 0f, 1f, 1f)
+                    (entity.shape as TriangleShape).mesh.draw()
                 }
                 else -> {}
             }

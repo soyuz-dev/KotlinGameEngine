@@ -20,6 +20,7 @@ import org.soyuz.util.Assets
 import org.soyuz.util.Color
 import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 fun main() {
@@ -171,8 +172,9 @@ fun main() {
             fpsPainter.texture?.height?.toDouble() ?: 30.0
         )
 
-        val pulse = 1.0 + sin(time * 3.0) * 0.3
-        circle.shape = CircleShape(60.0 * pulse)
+        val pulse = sin(time * 3.0)
+        circle.shape = CircleShape(60.0 * pulse + 80.0)
+        engine.width = 800
     }
 
     // --- Run Loop ---

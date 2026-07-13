@@ -142,7 +142,6 @@ object UISystem {
     fun getState(entityId: String): UIState = states.getOrPut(entityId) { UIState() }
 
     fun handleChar(char: Char, entities: List<GameEntity>) {
-        println("char typed: $char")
         focusedId?.let { id -> entities.find { it.id == id } }?.interactive?.onCharTyped(char)
     }
 }

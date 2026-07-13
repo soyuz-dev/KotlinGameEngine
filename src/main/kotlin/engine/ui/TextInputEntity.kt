@@ -1,7 +1,12 @@
 package org.soyuz.engine.ui
 
 import org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE
+import org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE
+import org.lwjgl.glfw.GLFW.GLFW_KEY_END
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER
+import org.lwjgl.glfw.GLFW.GLFW_KEY_HOME
+import org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT
+import org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.CompositePainter
@@ -15,16 +20,20 @@ class TextInputEntity(
     private val width: Double,
     font: Font,
     private val fontSize: Float,
-    background: Painter,
     private val placeholder: String,
-    val onSubmit: (String) -> Unit
+    val onSubmit: (String) -> Unit,
+    val onTextChanged: (String) -> Unit = {},
 ) : DefaultGameEntity(id) {
     private val buffer = StringBuilder()
     private var cursorVisible = true
     private var focused = false
     private val textPainter: TextPainter
 
-    val text: String get() = buffer.toString()
+    private var cursorPos = 0
+
+    val text: String get() {
+        return buffer.toString()
+    }
 
     init {
         shape = RectangleShape(width, fontSize * 1.5)
@@ -35,7 +44,7 @@ class TextInputEntity(
         textPainter.update(0f)  // force initial rasterize
         updateShape()
 
-        painter = CompositePainter(background, textPainter)
+        painter = CompositePainter(textPainter)
 
         interactive = Interactive
             .clickable(containsPoint = {
@@ -44,12 +53,10 @@ class TextInputEntity(
             }) { }
             .focusable(
                 onFocusGained = {
-                    println("FOCUS GAINED on $id")
                     focused = true
                     updateDisplay()
                 },
                 onFocusLost = {
-                    println("FOCUS LOST on $id")
                     focused = false
                     updateDisplay()
                 }
@@ -63,26 +70,49 @@ class TextInputEntity(
     private fun handleKeyPress(key: Int) {
         when (key) {
             GLFW_KEY_BACKSPACE -> {
-                if (buffer.isNotEmpty()) buffer.deleteCharAt(buffer.length - 1)
+                if (buffer.isNotEmpty() && cursorPos > 0) {
+                    cursorPos--
+                    buffer.deleteCharAt(cursorPos)
+                    onTextChanged(buffer.toString())
+                }
             }
-            GLFW_KEY_ENTER -> onSubmit(buffer.toString())
+            GLFW_KEY_ENTER -> {onSubmit(buffer.toString()); onTextChanged(buffer.toString())}
+            GLFW_KEY_LEFT -> {
+                if(cursorPos > 0) cursorPos--
+            }
+            GLFW_KEY_RIGHT -> {
+                if(cursorPos < buffer.length) cursorPos++
+            }
+            GLFW_KEY_DELETE -> {
+                if (cursorPos < buffer.length) {
+                    buffer.deleteCharAt(cursorPos)
+                    onTextChanged(buffer.toString())
+                }
+            }
+            GLFW_KEY_HOME -> {
+                cursorPos = 0
+            }
+            GLFW_KEY_END -> {
+                cursorPos = buffer.length
+            }
         }
         updateDisplay()
     }
 
     private fun handleChar(char: Char) {
-        println("char processed by textinput: $char")
         if (char.isISOControl()) return
-        buffer.append(char)
-        println("buffer: $buffer")
+        buffer.insert(cursorPos, char)
+        cursorPos++
         updateDisplay()
+        onTextChanged(buffer.toString())
     }
-
     private fun updateDisplay() {
         val displayText = if (buffer.isEmpty() && !focused) {
             placeholder
         } else {
-            buffer.toString() + if (cursorVisible && focused) "|" else ""
+            val before = buffer.substring(0, cursorPos)
+            val after = buffer.substring(cursorPos)
+            "$before${if (cursorVisible && focused) "|" else ""}$after"
         }
         textPainter.text = displayText
         textPainter.update(0f)
