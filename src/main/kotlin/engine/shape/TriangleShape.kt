@@ -2,6 +2,7 @@ package org.soyuz.engine.shape
 
 import org.soyuz.engine.render.Mesh
 import org.soyuz.util.Vector2D
+import kotlin.math.sqrt
 
 data class TriangleShape(
     val a: Vector2D,
@@ -27,4 +28,20 @@ data class TriangleShape(
             (c - center).length()
         )
     }
+
+    companion object {
+
+        private const val ROOT3 = 1.73205080757
+
+        fun equilateral(length: Double): TriangleShape {
+            val half = length / 2.0
+            val height = length * ROOT3 / 2.0
+            return TriangleShape(
+                Vector2D(0.0, height * 2.0 / 3.0),           // top vertex (centered)
+                Vector2D(-half, -height / 3.0),              // bottom-left
+                Vector2D(half, -height / 3.0)                // bottom-right
+            )
+        }
+    }
+
 }
