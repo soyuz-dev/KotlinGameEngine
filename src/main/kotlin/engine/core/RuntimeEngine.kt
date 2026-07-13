@@ -17,12 +17,21 @@ import org.soyuz.util.Assets
 import org.soyuz.util.Dynamic
 
 class RuntimeEngine(
-    private val title: String = "Bump",
-    private val windowWidth: Int = 800,
-    private val windowHeight: Int = 600,
+    title: String = "Bump",
+    private var windowWidth: Int = 800,
+    private var windowHeight: Int = 600,
     private val physicsSystem: PhysicsSystem?,
     private val camera: Camera
 ) : Engine, Dynamic {
+
+
+    var title: String = title
+        set(value) {
+            field = value
+            glfwSetWindowTitle(window, value)
+        }
+
+
 
     lateinit var renderSystem: RenderSystem
     lateinit var shader: Shader
@@ -30,9 +39,15 @@ class RuntimeEngine(
     var window: Long = NULL
         private set
     var width: Int = windowWidth
-        private set
+        set(value) {
+            field = value
+            glfwSetWindowSize(window, value, height)
+        }
     var height: Int = windowHeight
-        private set
+        set(value) {
+            field = value
+            glfwSetWindowSize(window, width, value)
+        }
 
     private var currentScene: Scene? = null
     private var running = false
@@ -83,8 +98,8 @@ class RuntimeEngine(
         glfwSetFramebufferSizeCallback(window) { _, w, h ->
             width = w
             height = h
-            glViewport(0, 0, width, height)
-            camera.setOrtho(width.toFloat(), height.toFloat())
+            glViewport(0, 0, w, h)
+            camera.setOrtho(w.toFloat(), h.toFloat())
         }
         glfwSetKeyCallback(window) { _, key, _, action, _ ->
             KeyListener.keyCallback(0, key, 0, action, 0)
@@ -112,8 +127,8 @@ class RuntimeEngine(
         timers.add(Timer(intervalMs = ms, type = TimerType.INTERVAL) { callback() })
     }
 
-    fun forever(callback: () -> Unit) {
-        timers.add(Timer(intervalMs = 0.0, type = TimerType.FOREVER) { callback() })
+    fun forever(callback: (dt: Double) -> Unit) {
+        timers.add(Timer(intervalMs = 0.0, type = TimerType.FOREVER) { callback(it) })
     }
 
     fun after(ms: Double, callback: () -> Unit) {
@@ -156,13 +171,21 @@ class RuntimeEngine(
         Assets.cleanup()
     }
 
+    private var dt = 0.0
+
     override fun update(dt: Float) {
         if (!running || dt <= 0f || !dt.isFinite()) return
         val scene = currentScene ?: return
 
+        this.dt += dt.toDouble()
+
+        while (this.dt >= DEFAULT_PHYSICS_TIMESTEP) {
+            physicsSystem?.step(scene, DEFAULT_PHYSICS_TIMESTEP)
+            this.dt -=DEFAULT_PHYSICS_TIMESTEP
+        }
+
         val entities = scene.allEntities()
         UISystem.update(entities)
-        physicsSystem?.step(scene, dt.toDouble())
 
         entities.forEach { entity ->
             (entity.painter as? Dynamic)?.update(dt)
@@ -199,7 +222,7 @@ class RuntimeEngine(
                     }
                 }
                 TimerType.FOREVER -> {
-                    timer.callback(0.0)
+                    timer.callback(dt.toDouble())
                     false
                 }
             }
@@ -238,5 +261,7 @@ class RuntimeEngine(
 
     companion object {
         const val DEFAULT_MAX_FRAME_DELTA: Double = 0.25
+
+        const val DEFAULT_PHYSICS_TIMESTEP: Double = 0.01
     }
 }

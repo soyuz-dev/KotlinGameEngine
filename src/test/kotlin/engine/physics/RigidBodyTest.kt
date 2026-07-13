@@ -59,15 +59,12 @@ class RigidBodyTest {
 
     @Test
     fun `impulse at offset produces angular velocity`() {
-        val rb = RigidBody(mass = 1.0) // inverseInertia = 1.0
-        val contactPoint = Vector2D(0.0, 2.0) // 2 units above center
-        val impulse = Vector2D(5.0, 0.0) // horizontal hit
-
-        // r = (0,2), impulse = (5,0), r × impulse = 0*0 - 2*5 = -10
-        // Δω = -10 * 1.0 = -10
+        val rb = RigidBody(mass = 1.0) // I = 1/6, invI = 6
+        val contactPoint = Vector2D(0.0, 2.0)
+        val impulse = Vector2D(5.0, 0.0)
         rb.applyImpulse(impulse, contactPoint)
-        assertEquals(-10.0, rb.angularVelocity, 1e-9)
-        assertEquals(5.0, rb.velocity.x, 1e-9) // linear still applies
+        assertEquals(-60.0, rb.angularVelocity, 1e-9) // -10 * 6
+        assertEquals(5.0, rb.velocity.x, 1e-9)
     }
 
     @Test
@@ -79,12 +76,11 @@ class RigidBodyTest {
 
     @Test
     fun `angular impulse respects inverse inertia`() {
-        val rb = RigidBody(mass = 4.0) // inverseInertia = 0.25
+        val rb = RigidBody(mass = 4.0) // I = 4*(1+1)/12 = 2/3, invI = 1.5
         val contactPoint = Vector2D(1.0, 0.0)
-        val impulse = Vector2D(0.0, 10.0) // r × impulse = 1*10 - 0*0 = 10
-
+        val impulse = Vector2D(0.0, 10.0)
         rb.applyImpulse(impulse, contactPoint)
-        assertEquals(2.5, rb.angularVelocity, 1e-9) // 10 * 0.25
+        assertEquals(15.0, rb.angularVelocity, 1e-9) // 10 * 1.5
     }
 
     @Test
@@ -101,14 +97,11 @@ class RigidBodyTest {
 
     @Test
     fun `torque affects angular velocity during integration`() {
-        val rb = RigidBody(mass = 1.0)
+        val rb = RigidBody(mass = 1.0) // invI = 6
         rb.applyTorque(5.0)
-
         rb.integratePosition(1.0 / 60.0)
         rb.integrateVelocity(1.0 / 60.0)
-
-        // Δω = torque * invInertia * dt = 5 * 1 * 1/60 ≈ 0.0833
-        assertEquals(5.0 / 60.0, rb.angularVelocity, 1e-9)
+        assertEquals(5.0 * 6.0 / 60.0, rb.angularVelocity, 1e-9) // 0.5
     }
 
     @Test
@@ -176,10 +169,9 @@ class RigidBodyTest {
 
     @Test
     fun `changing mass updates inverse inertia`() {
-        val rb = RigidBody(mass = 2.0)
-        assertEquals(0.5, rb.inverseInertia, 1e-9)
-
-        rb.mass = 4.0
-        assertEquals(0.25, rb.inverseInertia, 1e-9)
+        val rb = RigidBody(mass = 2.0) // I = 2*(1+1)/12 = 1/3, invI = 3
+        assertEquals(3.0, rb.inverseInertia, 1e-9)
+        rb.mass = 4.0 // I = 4*(1+1)/12 = 2/3, invI = 1.5
+        assertEquals(1.5, rb.inverseInertia, 1e-9)
     }
 }
