@@ -44,7 +44,7 @@ class TextInputEntity(
         textPainter.update(0f)  // force initial rasterize
         updateShape()
 
-        painter = CompositePainter(textPainter)
+        painter = textPainter
 
         interactive = Interactive
             .clickable(containsPoint = {

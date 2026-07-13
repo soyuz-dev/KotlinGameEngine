@@ -86,7 +86,7 @@ fun main() {
     }
 
     val nameLabel = UI.label("namelabel", width / 2.0, 600.0, "where", font, 14f, Color(150, 150, 150))
-    scene.addEntity(instrLabel)
+    scene.addEntity(nameLabel)
 
 
     val (nameInput, nameInputBG) = UI.textInput("name", 400.0, 300.0, font = font, placeholder = "Enter name...", background = SolidColor(Color(60, 10, 30))) { text ->
@@ -97,7 +97,7 @@ fun main() {
     scene.addEntity(nameInputBG)
     scene.addEntity(nameInput)
 
-    engine.forEvery(200.0) {
+    engine.forEvery(400.0) {
         nameInput.toggleCursor()
     }
 
