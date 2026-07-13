@@ -24,34 +24,38 @@ class RuntimeEngine(
     private val camera: Camera
 ) : Engine, Dynamic {
 
-
     var title: String = title
         set(value) {
             field = value
             glfwSetWindowTitle(window, value)
         }
 
-
-
     lateinit var renderSystem: RenderSystem
     lateinit var shader: Shader
 
     var window: Long = NULL
         private set
+
+    private var resizingFromCallback = false
+
     var width: Int = windowWidth
         set(value) {
             field = value
-            glfwSetWindowSize(window, value, height)
+            if (!resizingFromCallback) {
+                glfwSetWindowSize(window, value, height)
+            }
         }
+
     var height: Int = windowHeight
         set(value) {
             field = value
-            glfwSetWindowSize(window, width, value)
+            if (!resizingFromCallback) {
+                glfwSetWindowSize(window, width, value)
+            }
         }
 
     private var currentScene: Scene? = null
     private var running = false
-    private var accumulator = 0.0
     private val timers = mutableListOf<Timer>()
 
     private data class Timer(
@@ -65,12 +69,8 @@ class RuntimeEngine(
         INTERVAL, ONE_SHOT, DURING, FOREVER
     }
 
-    /**
-     * Initializes the GLFW Window, OpenGL context, and Audio systems.
-     * Call this before loading assets or running the engine.
-     */
     fun init() {
-        if (window != NULL) return // Already initialized
+        if (window != NULL) return
 
         if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
 
@@ -96,8 +96,10 @@ class RuntimeEngine(
 
     private fun setupCallbacks() {
         glfwSetFramebufferSizeCallback(window) { _, w, h ->
+            resizingFromCallback = true
             width = w
             height = h
+            resizingFromCallback = false
             glViewport(0, 0, w, h)
             camera.setOrtho(w.toFloat(), h.toFloat())
         }
@@ -127,7 +129,7 @@ class RuntimeEngine(
         timers.add(Timer(intervalMs = ms, type = TimerType.INTERVAL) { callback() })
     }
 
-    fun forever(callback: (dt: Double) -> Unit) {
+    fun everyFrame(callback: (dt: Double) -> Unit) {
         timers.add(Timer(intervalMs = 0.0, type = TimerType.FOREVER) { callback(it) })
     }
 
@@ -142,7 +144,6 @@ class RuntimeEngine(
     override fun loadScene(scene: Scene) {
         currentScene?.cleanup()
         currentScene = scene
-        accumulator = 0.0
         if (running) {
             scene.init()
         }
@@ -153,13 +154,10 @@ class RuntimeEngine(
         if (window == NULL) {
             throw IllegalStateException("Engine must be initialized via init() before starting.")
         }
-        // Safety check to ensure lateinit properties were assigned after init()
         if (!::renderSystem.isInitialized || !::shader.isInitialized) {
             throw IllegalStateException("renderSystem and shader must be assigned before starting the engine.")
         }
-
         running = true
-        accumulator = 0.0
         currentScene?.init()
     }
 
@@ -171,17 +169,17 @@ class RuntimeEngine(
         Assets.cleanup()
     }
 
-    private var dt = 0.0
+    private var physicsAccumulator = 0.0
 
     override fun update(dt: Float) {
         if (!running || dt <= 0f || !dt.isFinite()) return
         val scene = currentScene ?: return
 
-        this.dt += dt.toDouble()
+        physicsAccumulator += dt.toDouble()
 
-        while (this.dt >= DEFAULT_PHYSICS_TIMESTEP) {
+        while (physicsAccumulator >= DEFAULT_PHYSICS_TIMESTEP) {
             physicsSystem?.step(scene, DEFAULT_PHYSICS_TIMESTEP)
-            this.dt -=DEFAULT_PHYSICS_TIMESTEP
+            physicsAccumulator -= DEFAULT_PHYSICS_TIMESTEP
         }
 
         val entities = scene.allEntities()
@@ -207,9 +205,7 @@ class RuntimeEngine(
                     if (timer.accumulator >= timer.intervalMs) {
                         timer.callback(1.0)
                         true
-                    } else {
-                        false
-                    }
+                    } else false
                 }
                 TimerType.DURING -> {
                     if (timer.accumulator < timer.intervalMs) {
@@ -259,9 +255,57 @@ class RuntimeEngine(
         glfwTerminate()
     }
 
+    fun quit() {
+        glfwSetWindowShouldClose(window, true)
+    }
+
+    fun minimize() {
+        glfwIconifyWindow(window)
+    }
+
+    fun restore() {
+        glfwRestoreWindow(window)
+    }
+
+    fun maximize() {
+        glfwMaximizeWindow(window)
+    }
+
+    fun isMinimized(): Boolean = glfwGetWindowAttrib(window, GLFW_ICONIFIED) == GLFW_TRUE
+
+    fun isMaximized(): Boolean = glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_TRUE
+
+    fun isFocused(): Boolean = glfwGetWindowAttrib(window, GLFW_FOCUSED) == GLFW_TRUE
+
+    fun setPosition(x: Int, y: Int) {
+        glfwSetWindowPos(window, x, y)
+    }
+
+    fun center() {
+        val monitor = glfwGetPrimaryMonitor()
+        val mode = glfwGetVideoMode(monitor)!!
+        setPosition(
+            (mode.width() - width) / 2,
+            (mode.height() - height) / 2
+        )
+    }
+
+    fun setFullscreen(fullscreen: Boolean) {
+        if (fullscreen) {
+            val monitor = glfwGetPrimaryMonitor()
+            val mode = glfwGetVideoMode(monitor)!!
+            glfwSetWindowMonitor(window, monitor, 0, 0, mode.width(), mode.height(), mode.refreshRate())
+        } else {
+            glfwSetWindowMonitor(window, NULL, 100, 100, width, height, GLFW_DONT_CARE)
+        }
+    }
+
+    fun setVSync(enabled: Boolean) {
+        glfwSwapInterval(if (enabled) 1 else 0)
+    }
+
     companion object {
         const val DEFAULT_MAX_FRAME_DELTA: Double = 0.25
-
         const val DEFAULT_PHYSICS_TIMESTEP: Double = 0.01
     }
 }

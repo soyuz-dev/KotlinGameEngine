@@ -21,7 +21,6 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.ui.Interactive
 import org.soyuz.input.MouseListener
 import org.soyuz.util.Assets
-import org.soyuz.util.Transform
 import org.soyuz.util.Vector2D
 import kotlin.math.roundToInt
 
@@ -121,7 +120,7 @@ fun main() {
     makeBall(width / 3.0, height / 2.0, 200.0, -500.0, mass = 0.5, radius = 8.0)
     makeBall(2 * width / 3.0, height / 2.0, -200.0, -300.0, mass = 0.5, radius = 8.0)
 
-    engine.forever {
+    engine.everyFrame {
         if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             val mPos = MouseListener.getPos()
             if (Math.random() < 0.5) {

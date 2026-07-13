@@ -1,7 +1,6 @@
 package org.soyuz
 
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL11.*
 import org.soyuz.engine.collision.TriangleCollider
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
@@ -13,7 +12,6 @@ import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.TriangleShape
 import org.soyuz.engine.ui.Interactive
 import org.soyuz.engine.ui.draggable
-import org.soyuz.input.Input
 import org.soyuz.input.KeyListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
@@ -105,7 +103,7 @@ fun main() {
 
     var time = 0f
 
-    engine.forever { dt ->
+    engine.everyFrame { dt ->
         time += dt.toFloat()
 
         // Pulse the bottom triangle

@@ -11,12 +11,9 @@ import org.soyuz.engine.render.SolidColor
 import org.soyuz.engine.render.text.TextPainter
 import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
-import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.ui.Interactive
 import org.soyuz.engine.ui.UI
-import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.collision.CircleCollider
-import org.soyuz.engine.render.image.ImagePainter
 import org.soyuz.engine.ui.draggable
 import org.soyuz.engine.ui.hoverable
 import org.soyuz.input.KeyListener
@@ -104,7 +101,7 @@ fun main() {
         nameInput.toggleCursor()
     }
 
-    engine.forever {
+    engine.everyFrame {
         if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
             glfwSetWindowShouldClose(engine.window, true)
         }

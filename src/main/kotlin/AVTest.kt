@@ -138,7 +138,7 @@ fun main() {
     var fpsAccumulator = 0f
     var fpsFrameCount = 0
 
-    engine.forever {
+    engine.everyFrame {
         val currentTime = glfwGetTime()
         val dt = (currentTime - lastTime).toFloat()
         lastTime = currentTime
@@ -174,7 +174,7 @@ fun main() {
 
         val pulse = sin(time * 3.0)
         circle.shape = CircleShape(60.0 * pulse + 80.0)
-        engine.width = 800
+        engine.width = (600 + 200 * pulse).roundToInt()
     }
 
     // --- Run Loop ---
