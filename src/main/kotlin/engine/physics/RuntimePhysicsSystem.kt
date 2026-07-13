@@ -4,6 +4,7 @@ import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.CollisionSystem
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.events.CollisionEvent
+import org.soyuz.engine.events.CollisionEventType
 import org.soyuz.engine.events.EventBus
 import org.soyuz.engine.physics.forcefields.EntityAwareForceField
 import org.soyuz.engine.physics.joints.Joint
@@ -21,6 +22,7 @@ class RuntimePhysicsSystem(
     private val collisionSystem: CollisionSystem,
     private val eventBus: EventBus,
 ) : PhysicsSystem {
+    private val previousContacts = mutableSetOf<Pair<String, String>>()
 
     private val bodies = mutableMapOf<String, PhysicsBody>()
     private val dynamicFields = mutableListOf<EntityAwareForceField>()
@@ -180,16 +182,18 @@ class RuntimePhysicsSystem(
                 }
             }
         }
-        // Phase 4: Discrete Penetration Pass (Handles shallow resting contact overlaps safely)
+
         val contacts = collisionSystem.detect(scene)
 
+
+
+
+        // Phase 4: Discrete Penetration Pass (Handles shallow resting contact overlaps safely)
         for (contact in contacts) {
             val bodyA = bodies[contact.entityA] ?: continue
             val bodyB = bodies[contact.entityB] ?: continue
             val entityA = scene.findEntity(contact.entityA) ?: continue
             val entityB = scene.findEntity(contact.entityB) ?: continue
-
-            eventBus.publish(CollisionEvent(contact.entityA, contact.entityB))
 
             val invMassA = getInverseMass(bodyA)
             val invMassB = getInverseMass(bodyB)
@@ -285,7 +289,31 @@ class RuntimePhysicsSystem(
             entityB.transform = entityB.transform.translated(correction * invMassB)
         }
 
-        // Phase 4.5: Solve strict joints
+        //Phase 4.5: Publish contacts to the event bus
+
+        val currentContacts = mutableSetOf<Pair<String, String>>()
+        for (contact in contacts) {
+            val pair = if (contact.entityA < contact.entityB)
+                contact.entityA to contact.entityB
+            else
+                contact.entityB to contact.entityA
+            currentContacts.add(pair)
+
+            if (pair !in previousContacts) {
+                eventBus.publish(CollisionEvent(contact.entityA, contact.entityB, CollisionEventType.ENTER))
+            }
+        }
+
+        for (pair in previousContacts) {
+            if (pair !in currentContacts) {
+                eventBus.publish(CollisionEvent(pair.first, pair.second, CollisionEventType.EXIT))
+            }
+        }
+
+        previousContacts.clear()
+        previousContacts.addAll(currentContacts)
+
+        // Phase 5: Solve strict joints
         for (iter in 0 until 5) { // multiple iterations for convergence
             for (joint in joints) {
                 if (joint is StrictJoint) {
@@ -302,12 +330,12 @@ class RuntimePhysicsSystem(
             }
         }
 
-        // Phase 5: Finalize Velocities
+        // Phase 6: Finalize Velocities
         for ((_, body) in bodies) {
             body.integrateVelocity(dt)
         }
 
-        // Phase 6: Update positions for dynamic force fields
+        // Phase 7: Update positions for dynamic force fields
         for (field in dynamicFields) {
             for ((entityId, _) in bodies) {
                 val entity = scene.findEntity(entityId) ?: continue
