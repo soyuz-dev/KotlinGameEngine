@@ -100,7 +100,7 @@ fun main() {
         nameInput.toggleCursor()
     }
 
-    engine.everyFrame {
+    engine {
         if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
             engine.quit()
         }
