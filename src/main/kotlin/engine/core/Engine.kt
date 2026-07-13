@@ -7,4 +7,6 @@ interface Engine {
     fun start()
     fun stop()
     fun run()
+
+    operator fun invoke(callback: (dt:Double) -> Unit)
 }

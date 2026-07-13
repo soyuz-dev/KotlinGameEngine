@@ -1,7 +1,6 @@
 package org.soyuz
 
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
-import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.Camera

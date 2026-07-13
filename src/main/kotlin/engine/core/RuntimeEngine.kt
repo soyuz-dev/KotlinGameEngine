@@ -304,6 +304,8 @@ class RuntimeEngine(
         glfwSwapInterval(if (enabled) 1 else 0)
     }
 
+    override fun invoke(callback: (dt: Double) -> Unit) = everyFrame(callback)
+
     companion object {
         const val DEFAULT_MAX_FRAME_DELTA: Double = 0.25
         const val DEFAULT_PHYSICS_TIMESTEP: Double = 0.01
