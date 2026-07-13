@@ -12,11 +12,22 @@ typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 open class DefaultGameEntity(
     override val id: String,
     override var transform: Transform = Transform(),
-    override var shape: Shape2D? = null,
     override var painter: Painter? = null,
+    shape: Shape2D? = null,
     override var collider: Collider? = null,
     override var interactive: Interactive? = null,
 ) : GameEntity {
+
+
+    override var shape: Shape2D? = null
+        set(value) {
+            field = value
+            shapeListeners.forEach {
+                it(value)
+            }
+        }
+
+
     private val updateCallbacks = mutableListOf<GameEntityUpdateCallback>()
     private val collisionCallbacks = mutableListOf<(other: GameEntity) -> Unit>()
 
@@ -70,6 +81,8 @@ open class DefaultGameEntity(
     private val positionListeners = mutableListOf<(Vector2D) -> Unit>()
     private val rotationListeners = mutableListOf<(Double) -> Unit>()
 
+    private val shapeListeners = mutableListOf<(Shape2D?) -> Unit>()
+
     fun onPositionChanged(callback: (Vector2D) -> Unit) {
         positionListeners.add(callback)
         callback(position) // fire immediately with current value
@@ -78,5 +91,15 @@ open class DefaultGameEntity(
     fun onRotationChanged(callback: (Double) -> Unit) {
         rotationListeners.add(callback)
         callback(rotation)
+    }
+
+    fun onShapeChanged(callback: (Shape2D?) -> Unit) {
+        shapeListeners.add(callback)
+        callback(shape)
+    }
+
+
+    init {
+        this.shape = shape
     }
 }
