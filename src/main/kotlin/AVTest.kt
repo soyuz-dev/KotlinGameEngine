@@ -162,7 +162,7 @@ fun main() {
         }
 
         if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(engine.window, true)
+            engine.quit()
         }
 
         val fpsPainter = fpsLabel.painter as TextPainter

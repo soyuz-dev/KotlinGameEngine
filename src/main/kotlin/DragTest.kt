@@ -103,7 +103,7 @@ fun main() {
 
     engine.everyFrame {
         if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(engine.window, true)
+            engine.quit()
         }
     }
 

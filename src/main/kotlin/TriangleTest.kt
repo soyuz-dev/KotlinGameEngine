@@ -120,7 +120,7 @@ fun main() {
         rotTri.rotation += dt * 2.0
 
         if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(engine.window, true)
+            engine.quit()
         }
     }
 
