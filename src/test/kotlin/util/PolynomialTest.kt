@@ -1,5 +1,7 @@
 package org.soyuz.util
 
+import org.soyuz.util.math.Polynomial
+import org.soyuz.util.math.times
 import kotlin.test.*
 
 class PolynomialTest {

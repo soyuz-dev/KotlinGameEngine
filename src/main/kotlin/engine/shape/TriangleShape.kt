@@ -1,8 +1,7 @@
 package org.soyuz.engine.shape
 
 import org.soyuz.engine.render.Mesh
-import org.soyuz.util.Vector2D
-import kotlin.math.sqrt
+import org.soyuz.util.math.Vector2D
 
 data class TriangleShape(
     val a: Vector2D,
@@ -40,6 +39,16 @@ data class TriangleShape(
                 Vector2D(0.0, height * 2.0 / 3.0),           // top vertex (centered)
                 Vector2D(-half, -height / 3.0),              // bottom-left
                 Vector2D(half, -height / 3.0)                // bottom-right
+            )
+        }
+
+        fun isosceles(width: Double, height: Double): TriangleShape {
+            val halfW = width / 2.0
+            val centroidY = height / 3.0  // centroid of isosceles triangle from base
+            return TriangleShape(
+                Vector2D(0.0, height - centroidY),     // nose (top)
+                Vector2D(-halfW, -centroidY),          // bottom-left
+                Vector2D(halfW, -centroidY)            // bottom-right
             )
         }
     }

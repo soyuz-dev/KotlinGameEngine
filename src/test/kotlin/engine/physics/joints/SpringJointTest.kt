@@ -1,7 +1,7 @@
 package org.soyuz.engine.physics.joints
 
 import org.soyuz.engine.physics.PointMass
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import kotlin.test.*
 
 class SpringJointTest {

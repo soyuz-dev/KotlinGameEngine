@@ -1,6 +1,6 @@
 package org.soyuz.engine.collision
 
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 
 data class Contact(
     val entityA: String,

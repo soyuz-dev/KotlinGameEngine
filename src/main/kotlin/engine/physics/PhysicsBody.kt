@@ -1,11 +1,10 @@
 package org.soyuz.engine.physics
 
 import org.soyuz.engine.physics.forcefields.ForceField
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 
 interface PhysicsBody {
     var mass: Double
-
     val restitution:Double
     var velocity: Vector2D
     fun applyForce(force: Vector2D) = Unit

@@ -1,10 +1,9 @@
 package org.soyuz.engine.collision
 
-import org.soyuz.util.Transform
+import org.soyuz.util.math.Transform
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
-import org.soyuz.util.Vector2D
-import kotlin.math.sqrt
+import org.soyuz.util.math.Vector2D
 import kotlin.test.*
 
 class RectangleColliderTest {

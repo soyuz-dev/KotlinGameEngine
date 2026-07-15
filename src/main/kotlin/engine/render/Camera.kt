@@ -1,6 +1,6 @@
 package org.soyuz.engine.render
 
-import org.soyuz.util.MathUtil
+import org.soyuz.util.math.MathUtil
 
 class Camera {
     private val projection = FloatArray(16)

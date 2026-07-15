@@ -7,8 +7,8 @@ import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.shape.TriangleShape
-import org.soyuz.util.MathUtil
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.MathUtil
+import org.soyuz.util.math.Vector2D
 
 class RuntimeRenderSystem(
     private val quadMesh: Mesh,

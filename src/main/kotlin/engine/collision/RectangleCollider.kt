@@ -1,9 +1,9 @@
 package org.soyuz.engine.collision
 
-import org.soyuz.util.Transform
+import org.soyuz.util.math.Transform
 import org.soyuz.engine.shape.RectangleShape
-import org.soyuz.util.MathUtil
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.MathUtil
+import org.soyuz.util.math.Vector2D
 import kotlin.math.cos
 import kotlin.math.sin
 

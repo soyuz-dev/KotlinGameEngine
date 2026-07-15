@@ -1,4 +1,4 @@
-package org.soyuz.util
+package org.soyuz.util.math
 
 import kotlin.math.cos
 import kotlin.math.sin

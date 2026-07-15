@@ -10,8 +10,8 @@ import org.soyuz.engine.render.text.TextPainter
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.util.Color
-import org.soyuz.util.Transform
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Transform
+import org.soyuz.util.math.Vector2D
 
 object UI {
     fun button(

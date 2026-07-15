@@ -1,11 +1,12 @@
 package org.soyuz.util
 
-import org.soyuz.util.Transform
 import org.soyuz.engine.shape.Aabb2D
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.shape.Shape2D
 import org.soyuz.engine.shape.TriangleShape
+import org.soyuz.util.math.Transform
+import org.soyuz.util.math.Vector2D
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin

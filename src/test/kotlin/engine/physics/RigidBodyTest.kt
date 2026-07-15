@@ -1,7 +1,6 @@
 package org.soyuz.engine.physics
 
-import org.soyuz.util.Vector2D
-import kotlin.math.abs
+import org.soyuz.util.math.Vector2D
 import kotlin.test.*
 
 class RigidBodyTest {

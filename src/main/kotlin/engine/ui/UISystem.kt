@@ -2,7 +2,7 @@ package org.soyuz.engine.ui
 
 import org.soyuz.engine.entity.GameEntity
 import org.soyuz.input.Input
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import org.lwjgl.glfw.GLFW.*
 
 object UISystem {

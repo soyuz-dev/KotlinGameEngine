@@ -1,6 +1,6 @@
 package org.soyuz.engine.ui
 
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 
 interface Interactive {
     fun containsPoint(screenPoint: Vector2D): Boolean

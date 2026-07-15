@@ -1,6 +1,6 @@
 package org.soyuz.input
 
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 
 object Input {
 

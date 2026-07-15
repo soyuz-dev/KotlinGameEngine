@@ -4,7 +4,7 @@ import org.soyuz.engine.collision.Collider
 import org.soyuz.engine.render.Painter
 import org.soyuz.engine.shape.Shape2D
 import org.soyuz.engine.ui.Interactive
-import org.soyuz.util.Transform
+import org.soyuz.util.math.Transform
 
 interface GameEntity {
     val id: String

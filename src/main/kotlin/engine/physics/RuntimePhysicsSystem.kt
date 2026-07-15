@@ -14,7 +14,7 @@ import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.util.ShapeQueries
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
@@ -35,21 +35,11 @@ class RuntimePhysicsSystem(
 
     override fun getBody(entityId: String): PhysicsBody? = bodies[entityId]
 
-    override fun addJoint(joint: Joint) {
-        joints.add(joint)
-    }
+    override fun addJoint(joint: Joint) { joints.add(joint) }
+    override fun removeJoint(joint: Joint) { joints.remove(joint) }
 
-    override fun removeJoint(joint: Joint) {
-        joints.remove(joint)
-    }
-
-    override fun addDynamicField(field: EntityAwareForceField) {
-        dynamicFields.add(field)
-    }
-
-    override fun removeDynamicField(field: EntityAwareForceField) {
-        dynamicFields.remove(field)
-    }
+    override fun addDynamicField(field: EntityAwareForceField) { dynamicFields.add(field) }
+    override fun removeDynamicField(field: EntityAwareForceField) { dynamicFields.remove(field) }
 
     override fun registerBody(entityId: String, body: PhysicsBody) {
         bodies[entityId] = body
@@ -57,8 +47,7 @@ class RuntimePhysicsSystem(
     }
 
     override fun unregisterBody(entityId: String) {
-        val body = bodies.remove(entityId)
-        if(body != null) bodyToEntity.remove(body)
+        bodies.remove(entityId)?.let { bodyToEntity.remove(it) }
     }
 
     override fun step(scene: Scene, dt: Double) {
@@ -70,7 +59,7 @@ class RuntimePhysicsSystem(
                 val entity = scene.findEntity(entityId) ?: continue
                 body.accumulateForces(entity.transform.position)
             }
-            if (body is RigidBody) {
+            if(body is RigidBody) {
                 val entity = scene.findEntity(entityId) ?: continue
                 body.accumulateForces(entity.transform.position)
             }
@@ -79,19 +68,14 @@ class RuntimePhysicsSystem(
         // Phase 1.5: Accumulate forces from permissive joints
         for (joint in joints) {
             if (joint is PermissiveJoint) {
-                val entityA = scene.findEntity(bodyToEntity[joint.bodyA]!!) ?: continue
-                val entityB = scene.findEntity(bodyToEntity[joint.bodyB]!!) ?: continue
+                val entityA = scene.findEntity(bodyToEntity[joint.bodyA] ?: continue) ?: continue
+                val entityB = scene.findEntity(bodyToEntity[joint.bodyB] ?: continue) ?: continue
                 joint.accumulateForces(entityA.transform.position, entityB.transform.position)
             }
         }
 
         // Phase 2: Pre-calculate prospective full frame displacements
-        val displacements = mutableMapOf<String, Vector2D>()
-        for ((entityId, body) in bodies) {
-            displacements[entityId] = body.integratePosition(dt)
-        }
-
-        var earliestHitOtherId: String?
+        val displacements = bodies.mapValues { (_, body) -> body.integratePosition(dt) }
 
         // Phase 3: Predictive CCD Substepping & Dynamic Bouncing Pass
         for ((entityId, body) in bodies) {
@@ -101,8 +85,6 @@ class RuntimePhysicsSystem(
 
             val collider = collisionSystem.getCollider(entityId)
             val shape = entity.shape
-
-            earliestHitOtherId = null
 
             if (collider is CircleCollider && shape is CircleShape) {
                 var currentPos = oldPos
@@ -114,6 +96,7 @@ class RuntimePhysicsSystem(
 
                     var earliestHitTime: Double? = null
                     var hitNormal: Vector2D? = null
+                    var earliestHitOtherId: String? = null
 
                     for ((otherId, _) in bodies) {
                         if (otherId == entityId) continue
@@ -128,7 +111,6 @@ class RuntimePhysicsSystem(
                             val hit = sweptCircleVsAabb(currentPos, shape.radius, currentDisplacement, aabbMin, aabbMax)
                             if (hit != null) {
                                 val (hitTime, normal) = hit
-
                                 if (body.velocity.dot(normal) < -1e-5) {
                                     if (earliestHitTime == null || hitTime < earliestHitTime) {
                                         earliestHitTime = hitTime
@@ -140,31 +122,21 @@ class RuntimePhysicsSystem(
                         }
                     }
 
-                    if (earliestHitTime != null && hitNormal != null) {
-                        // 1. Advance position up to the exact impact point
+                    if (earliestHitTime != null && hitNormal != null && earliestHitOtherId != null) {
                         currentPos += currentDisplacement * earliestHitTime
+                        currentPos += hitNormal * 0.01 // Micro-nudge outward along normal
 
-                        // 2. Micro-nudge outward along normal to clear the boundary plane cleanly
-                        currentPos += hitNormal * 0.01
-
-                        // 3. Resolve instantaneous bounce impulse response
                         val vn = body.velocity.dot(hitNormal)
                         if (vn < 0) {
-                            // BOUNCE THRESHOLD: If impact speed is tiny (like resting gravity),
-                            // treat restitution as 0.0 to prevent energy generation loops.
+                            // BOUNCE THRESHOLD: Avoid energy generation loops at resting gravity speeds
                             val e = if (abs(vn) < 20.0) 0.0 else body.restitution
-
                             val impulseMagnitude = -(1.0 + e) * vn * body.mass
                             body.applyImpulse(hitNormal * impulseMagnitude, Vector2D.ZERO)
 
-                            val pair = if (entityId < earliestHitOtherId!!)
-                                entityId to earliestHitOtherId
-                            else
-                                earliestHitOtherId to entityId
+                            val pair = if (entityId < earliestHitOtherId) entityId to earliestHitOtherId else earliestHitOtherId to entityId
                             ccdContacts.add(pair)
                         }
 
-                        // 4. Update the remaining displacement using the freshly modified velocity vector
                         val dtRemaining = dt * (1.0 - earliestHitTime)
                         currentDisplacement = body.velocity * dtRemaining
                     } else {
@@ -172,11 +144,10 @@ class RuntimePhysicsSystem(
                         break
                     }
                 }
+
                 entity.transform = entity.transform.copy(position = currentPos)
-                // Update rotation for RigidBody
                 if (body is RigidBody) {
                     entity.transform = entity.transform.copy(
-                        position = currentPos,
                         rotationRadians = entity.transform.rotationRadians + body.angularVelocity * dt
                     )
                 }
@@ -194,9 +165,6 @@ class RuntimePhysicsSystem(
 
         val contacts = collisionSystem.detect(scene)
 
-
-
-
         // Phase 4: Discrete Penetration Pass (Handles shallow resting contact overlaps safely)
         for (contact in contacts) {
             val bodyA = bodies[contact.entityA] ?: continue
@@ -206,22 +174,16 @@ class RuntimePhysicsSystem(
 
             val invMassA = getInverseMass(bodyA)
             val invMassB = getInverseMass(bodyB)
-
             if (invMassA == 0.0 && invMassB == 0.0) continue
 
-            // Alignment Correction: Ensure the contact normal consistently points from A to B
-            val relPos = entityB.transform.position - entityA.transform.position
             val normal = contact.normal
-
             val relativeV = bodyB.velocity - bodyA.velocity
             val vAlongNormal = relativeV.dot(normal)
 
-            // If objects are already separating or moving apart, skip entirely
-            if (vAlongNormal > 0.0) continue
+            if (vAlongNormal > 0.0) continue // Separating
 
             val approachSpeed = abs(vAlongNormal)
             val e = if (approachSpeed < 30.0) 0.0 else minOf(bodyA.restitution, bodyB.restitution)
-
 
             val rA = contact.point - entityA.transform.position
             val rB = contact.point - entityB.transform.position
@@ -229,64 +191,17 @@ class RuntimePhysicsSystem(
             val rACrossN = rA.cross(normal)
             val rBCrossN = rB.cross(normal)
 
-
-            val invMassEffectiveA = invMassA +
-                    if (bodyA is RigidBody) {
-                        (rACrossN * rACrossN) * bodyA.inverseInertia
-                    } else {
-                        0.0
-                    }
-            val invMassEffectiveB = invMassB +
-                    if (bodyB is RigidBody) {
-                        (rBCrossN * rBCrossN) * bodyB.inverseInertia
-                    } else {
-                        0.0
-                    }
+            val invMassEffectiveA = invMassA + if (bodyA is RigidBody) (rACrossN * rACrossN) * bodyA.inverseInertia else 0.0
+            val invMassEffectiveB = invMassB + if (bodyB is RigidBody) (rBCrossN * rBCrossN) * bodyB.inverseInertia else 0.0
 
             val j = -(1.0 + e) * vAlongNormal / (invMassEffectiveA + invMassEffectiveB)
             val impulse = normal * j
 
-            bodyA.applyImpulse(-impulse, contact.point - entityA.transform.position)
-            bodyB.applyImpulse(impulse, contact.point - entityB.transform.position)
+            bodyA.applyImpulse(-impulse, rA)
+            bodyB.applyImpulse(impulse, rB)
 
-            // NEW: Friction impulse
-            val tangent = Vector2D(-normal.y, normal.x)  // perpendicular to normal
-
-
-            //NOTE: The rotational part only applies to rigidbodies.
-
-            // Include rotational velocity: v_contact = v_linear + ω × r
-            val vA = bodyA.velocity + if (bodyA is RigidBody) {
-                Vector2D(-bodyA.angularVelocity * rA.y, bodyA.angularVelocity * rA.x)
-            } else {
-                Vector2D.ZERO
-            }
-            val vB = bodyB.velocity + if (bodyB is RigidBody) {
-                Vector2D(-bodyB.angularVelocity * rB.y, bodyB.angularVelocity * rB.x)
-            } else {
-                Vector2D.ZERO
-            }
-            val relVelAtContact = vB - vA
-
-            val vAlongTangent = relVelAtContact.dot(tangent)
-
-            if (abs(vAlongTangent) > 1e-5) {
-                val rACrossT = rA.cross(tangent)
-                val rBCrossT = rB.cross(tangent)
-
-                val invMassEffectiveA_T = invMassA + (rACrossT * rACrossT) *
-                        if (bodyA is RigidBody) bodyA.inverseInertia else 0.0
-                val invMassEffectiveB_T = invMassB + (rBCrossT * rBCrossT) *
-                        if (bodyB is RigidBody) bodyB.inverseInertia else 0.0
-
-                val frictionCoeff = 0.3 // tune: higher = more friction
-                val frictionMagnitude = frictionCoeff * abs(j)  // No velocity cap
-                val frictionImpulse = tangent * -sign(vAlongTangent) * frictionMagnitude
-                //println("DEBUG FRICTION: entity=${contact.entityA}, vAlongTangent=$vAlongTangent, j=$j, frictionMag=$frictionMagnitude")
-
-                bodyA.applyImpulse(-frictionImpulse, contact.point - entityA.transform.position)
-                bodyB.applyImpulse(frictionImpulse, contact.point - entityB.transform.position)
-            }
+            // Resolve friction impulse
+            applyFrictionImpulse(bodyA, bodyB, rA, rB, normal, j, invMassA, invMassB)
 
             // Positional correction to counter positional drifting/sinking
             val slop = 0.01
@@ -298,34 +213,27 @@ class RuntimePhysicsSystem(
             entityB.transform = entityB.transform.translated(correction * invMassB)
         }
 
-        //Phase 4.5: Publish contacts to the event bus
-
-        val currentContacts = mutableSetOf<Pair<String, String>>()
-        currentContacts.addAll(ccdContacts)
+        // Phase 4.5: Publish contacts to the event bus
+        val currentContacts = mutableSetOf<Pair<String, String>>().apply { addAll(ccdContacts) }
 
         for (pair in ccdContacts) {
             if (pair !in previousContacts) {
-                println("ENTER (CCD): $pair")
                 eventBus.publish(CollisionEvent(pair.first, pair.second, CollisionEventType.ENTER))
             }
         }
         ccdContacts.clear()
+
         for (contact in contacts) {
-            val pair = if (contact.entityA < contact.entityB)
-                contact.entityA to contact.entityB
-            else
-                contact.entityB to contact.entityA
+            val pair = if (contact.entityA < contact.entityB) contact.entityA to contact.entityB else contact.entityB to contact.entityA
             currentContacts.add(pair)
 
             if (pair !in previousContacts) {
-                println("ENTER: $pair")
                 eventBus.publish(CollisionEvent(contact.entityA, contact.entityB, CollisionEventType.ENTER))
             }
         }
 
         for (pair in previousContacts) {
             if (pair !in currentContacts) {
-                println("EXIT: $pair")
                 eventBus.publish(CollisionEvent(pair.first, pair.second, CollisionEventType.EXIT))
             }
         }
@@ -334,16 +242,12 @@ class RuntimePhysicsSystem(
         previousContacts.addAll(currentContacts)
 
         // Phase 5: Solve strict joints
-        for (iter in 0 until 5) { // multiple iterations for convergence
+        for (iter in 0 until 5) {
             for (joint in joints) {
                 if (joint is StrictJoint) {
-                    val entityA = scene.findEntity(bodyToEntity[joint.bodyA]!!) ?: continue
-                    val entityB = scene.findEntity(bodyToEntity[joint.bodyB]!!) ?: continue
-                    val (newPosA, newPosB) = joint.solvePositions(
-                        entityA.transform.position,
-                        entityB.transform.position,
-                        dt
-                    )
+                    val entityA = scene.findEntity(bodyToEntity[joint.bodyA] ?: continue) ?: continue
+                    val entityB = scene.findEntity(bodyToEntity[joint.bodyB] ?: continue) ?: continue
+                    val (newPosA, newPosB) = joint.solvePositions(entityA.transform.position, entityB.transform.position, dt)
                     entityA.transform = entityA.transform.copy(position = newPosA)
                     entityB.transform = entityB.transform.copy(position = newPosB)
                 }
@@ -351,9 +255,7 @@ class RuntimePhysicsSystem(
         }
 
         // Phase 6: Finalize Velocities
-        for ((_, body) in bodies) {
-            body.integrateVelocity(dt)
-        }
+        bodies.values.forEach { it.integrateVelocity(dt) }
 
         // Phase 7: Update positions for dynamic force fields
         for (field in dynamicFields) {
@@ -364,6 +266,35 @@ class RuntimePhysicsSystem(
         }
     }
 
+    private fun applyFrictionImpulse(
+        bodyA: PhysicsBody, bodyB: PhysicsBody,
+        rA: Vector2D, rB: Vector2D,
+        normal: Vector2D, j: Double,
+        invMassA: Double, invMassB: Double
+    ) {
+        val tangent = Vector2D(-normal.y, normal.x)
+        val vA = bodyA.velocity + if (bodyA is RigidBody) Vector2D(-bodyA.angularVelocity * rA.y, bodyA.angularVelocity * rA.x) else Vector2D.ZERO
+        val vB = bodyB.velocity + if (bodyB is RigidBody) Vector2D(-bodyB.angularVelocity * rB.y, bodyB.angularVelocity * rB.x) else Vector2D.ZERO
+
+        val relVelAtContact = vB - vA
+        val vAlongTangent = relVelAtContact.dot(tangent)
+
+        if (abs(vAlongTangent) > 1e-5) {
+            val rACrossT = rA.cross(tangent)
+            val rBCrossT = rB.cross(tangent)
+
+            val invMassEffectiveA_T = invMassA + (rACrossT * rACrossT) * if (bodyA is RigidBody) bodyA.inverseInertia else 0.0
+            val invMassEffectiveB_T = invMassB + (rBCrossT * rBCrossT) * if (bodyB is RigidBody) bodyB.inverseInertia else 0.0
+
+            val frictionCoeff = 0.3
+            val frictionMagnitude = frictionCoeff * abs(j)
+            val frictionImpulse = tangent * -sign(vAlongTangent) * frictionMagnitude
+
+            bodyA.applyImpulse(-frictionImpulse, rA)
+            bodyB.applyImpulse(frictionImpulse, rB)
+        }
+    }
+
     private fun getInverseMass(body: PhysicsBody): Double = when (body) {
         is RigidBody -> body.inverseMass
         is PointMass -> body.inverseMass
@@ -371,11 +302,8 @@ class RuntimePhysicsSystem(
     }
 
     private fun sweptCircleVsAabb(
-        circleCenter: Vector2D,
-        circleRadius: Double,
-        displacement: Vector2D,
-        aabbMin: Vector2D,
-        aabbMax: Vector2D
+        circleCenter: Vector2D, circleRadius: Double, displacement: Vector2D,
+        aabbMin: Vector2D, aabbMax: Vector2D
     ): Pair<Double, Vector2D>? {
         val min = aabbMin - Vector2D(circleRadius, circleRadius)
         val max = aabbMax + Vector2D(circleRadius, circleRadius)
@@ -394,7 +322,7 @@ class RuntimePhysicsSystem(
         } else {
             var t1 = (min.x - circleCenter.x) * invX
             var t2 = (max.x - circleCenter.x) * invX
-            if (t1 > t2) { val tmp = t1; t1 = t2; t2 = tmp }
+            if (t1 > t2) t1 = t2.also { t2 = t1 }
             tMin = maxOf(tMin, t1)
             tMax = minOf(tMax, t2)
             if (tMin > tMax) return null
@@ -406,20 +334,17 @@ class RuntimePhysicsSystem(
         } else {
             var t1 = (min.y - circleCenter.y) * invY
             var t2 = (max.y - circleCenter.y) * invY
-            if (t1 > t2) { val tmp = t1; t1 = t2; t2 = tmp }
+            if (t1 > t2) t1 = t2.also { t2 = t1 }
             tMin = maxOf(tMin, t1)
             tMax = minOf(tMax, t2)
             if (tMin > tMax) return null
         }
 
-        // Reject if timeline does not intersect inside this frame step
         if (tMax < 0.0 || tMin > 1.0) return null
 
-        // Clamp negative values to 0.0 if the frame starts already touching or slightly overlapping
         val correctedTMin = maxOf(0.0, tMin)
         val hitPoint = circleCenter + (displacement * correctedTMin)
 
-        // Corner Mitigation: Fix "fake" sharp corner zones of the inflated Minkowski box
         val edgeX = when {
             hitPoint.x < aabbMin.x -> aabbMin.x
             hitPoint.x > aabbMax.x -> aabbMax.x

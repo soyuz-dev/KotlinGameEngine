@@ -4,8 +4,8 @@ import org.soyuz.engine.collision.Collider
 import org.soyuz.engine.render.Painter
 import org.soyuz.engine.shape.Shape2D
 import org.soyuz.engine.ui.Interactive
-import org.soyuz.util.Transform
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Transform
+import org.soyuz.util.math.Vector2D
 
 typealias GameEntityUpdateCallback = (entity: GameEntity, dt: Float) -> Unit
 

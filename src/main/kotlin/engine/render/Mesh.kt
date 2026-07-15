@@ -1,7 +1,7 @@
 package org.soyuz.engine.render
 
 import org.lwjgl.opengl.GL30.*
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import kotlin.math.cos
 import kotlin.math.sin
 

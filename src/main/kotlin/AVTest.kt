@@ -18,8 +18,8 @@ import org.soyuz.engine.ui.UI
 import org.soyuz.input.KeyListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
-import org.soyuz.util.Transform
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Transform
+import org.soyuz.util.math.Vector2D
 import kotlin.math.roundToInt
 import kotlin.math.sin
 

@@ -1,4 +1,4 @@
-package org.soyuz.util
+package org.soyuz.util.math
 
 
 /**
@@ -6,7 +6,7 @@ package org.soyuz.util
  * Coefficients are stored in ascending order of degree:
  * c₀ + c₁x + c₂x² + ...
  */
-class Polynomial(vararg coeffs: Double) {
+class Polynomial(vararg coeffs: Double) : (Double) -> Double{
 
     private val coefficients:DoubleArray = coeffs
 
@@ -18,7 +18,7 @@ class Polynomial(vararg coeffs: Double) {
         return result
     }
 
-    operator fun invoke(x: Double): Double = evaluate(x)
+    override operator fun invoke(x: Double): Double = evaluate(x)
 
     operator fun plus(other: Polynomial): Polynomial {
         val maxLen = maxOf(coefficients.size, other.coefficients.size)

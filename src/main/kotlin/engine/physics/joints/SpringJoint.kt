@@ -1,7 +1,7 @@
 package org.soyuz.engine.physics.joints
 
 import org.soyuz.engine.physics.PhysicsBody
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 
 class SpringJoint(
     override val bodyA: PhysicsBody,

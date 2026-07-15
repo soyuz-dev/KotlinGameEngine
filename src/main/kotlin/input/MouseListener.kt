@@ -1,6 +1,6 @@
 package org.soyuz.input
 
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 

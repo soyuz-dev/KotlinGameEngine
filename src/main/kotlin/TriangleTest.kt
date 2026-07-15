@@ -15,7 +15,7 @@ import org.soyuz.engine.ui.draggable
 import org.soyuz.input.KeyListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import kotlin.math.sin
 import kotlin.math.cos
 

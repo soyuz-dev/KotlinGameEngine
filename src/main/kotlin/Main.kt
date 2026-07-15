@@ -22,7 +22,7 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.ui.Interactive
 import org.soyuz.input.MouseListener
 import org.soyuz.util.Assets
-import org.soyuz.util.Vector2D
+import org.soyuz.util.math.Vector2D
 import kotlin.math.roundToInt
 
 fun main() {
