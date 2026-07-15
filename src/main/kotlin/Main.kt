@@ -8,6 +8,7 @@ import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.events.CollisionEvent
+import org.soyuz.engine.events.CollisionEventType
 import org.soyuz.engine.events.RuntimeEventBus
 import org.soyuz.engine.physics.*
 import org.soyuz.engine.physics.forcefields.ConstantAccelerationField
@@ -48,8 +49,8 @@ fun main() {
 
 
     fun callback(collisionEvent: CollisionEvent) {
+        if(collisionEvent.type != CollisionEventType.ENTER) return
         if(collisionEvent.sourceEntityId.startsWith("wall") && collisionEvent.otherEntityId.startsWith("wall")) return
-        if(collisionEvent.sourceEntityId.startsWith("brick") || collisionEvent.otherEntityId.startsWith("brick")) return
         println("Bump! ${collisionEvent.sourceEntityId} hit ${collisionEvent.otherEntityId}")
         sound.play(Assets.audio("click"))
     }
@@ -59,6 +60,7 @@ fun main() {
     val scene = RuntimeScene("brickpit")
     val gravity = ConstantAccelerationField(Vector2D(0.0, 981.0))
     var entityCount = 0
+
 
     fun makeBall(x: Double, y: Double, vx: Double, vy: Double, mass: Double = 1.0, radius: Double = 10.0, restitution: Double = .7) {
         val id = "ball_${entityCount++}"

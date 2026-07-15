@@ -16,12 +16,15 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.util.ShapeQueries
 import org.soyuz.util.Vector2D
 import kotlin.math.abs
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 class RuntimePhysicsSystem(
     private val collisionSystem: CollisionSystem,
     private val eventBus: EventBus,
 ) : PhysicsSystem {
+
+    private val ccdContacts = mutableSetOf<Pair<String, String>>()
     private val previousContacts = mutableSetOf<Pair<String, String>>()
 
     private val bodies = mutableMapOf<String, PhysicsBody>()
@@ -88,7 +91,7 @@ class RuntimePhysicsSystem(
             displacements[entityId] = body.integratePosition(dt)
         }
 
-        var earliestHitOtherId: String? = null
+        var earliestHitOtherId: String?
 
         // Phase 3: Predictive CCD Substepping & Dynamic Bouncing Pass
         for ((entityId, body) in bodies) {
@@ -98,6 +101,8 @@ class RuntimePhysicsSystem(
 
             val collider = collisionSystem.getCollider(entityId)
             val shape = entity.shape
+
+            earliestHitOtherId = null
 
             if (collider is CircleCollider && shape is CircleShape) {
                 var currentPos = oldPos
@@ -147,12 +152,16 @@ class RuntimePhysicsSystem(
                         if (vn < 0) {
                             // BOUNCE THRESHOLD: If impact speed is tiny (like resting gravity),
                             // treat restitution as 0.0 to prevent energy generation loops.
-                            val e = body.restitution
+                            val e = if (abs(vn) < 20.0) 0.0 else body.restitution
 
                             val impulseMagnitude = -(1.0 + e) * vn * body.mass
                             body.applyImpulse(hitNormal * impulseMagnitude, Vector2D.ZERO)
 
-                            eventBus.publish(CollisionEvent(entityId, earliestHitOtherId!!))
+                            val pair = if (entityId < earliestHitOtherId!!)
+                                entityId to earliestHitOtherId
+                            else
+                                earliestHitOtherId to entityId
+                            ccdContacts.add(pair)
                         }
 
                         // 4. Update the remaining displacement using the freshly modified velocity vector
@@ -261,7 +270,7 @@ class RuntimePhysicsSystem(
 
             val vAlongTangent = relVelAtContact.dot(tangent)
 
-            if (kotlin.math.abs(vAlongTangent) > 1e-5) {
+            if (abs(vAlongTangent) > 1e-5) {
                 val rACrossT = rA.cross(tangent)
                 val rBCrossT = rB.cross(tangent)
 
@@ -272,7 +281,7 @@ class RuntimePhysicsSystem(
 
                 val frictionCoeff = 0.3 // tune: higher = more friction
                 val frictionMagnitude = frictionCoeff * abs(j)  // No velocity cap
-                val frictionImpulse = tangent * -kotlin.math.sign(vAlongTangent) * frictionMagnitude
+                val frictionImpulse = tangent * -sign(vAlongTangent) * frictionMagnitude
                 //println("DEBUG FRICTION: entity=${contact.entityA}, vAlongTangent=$vAlongTangent, j=$j, frictionMag=$frictionMagnitude")
 
                 bodyA.applyImpulse(-frictionImpulse, contact.point - entityA.transform.position)
@@ -292,6 +301,15 @@ class RuntimePhysicsSystem(
         //Phase 4.5: Publish contacts to the event bus
 
         val currentContacts = mutableSetOf<Pair<String, String>>()
+        currentContacts.addAll(ccdContacts)
+
+        for (pair in ccdContacts) {
+            if (pair !in previousContacts) {
+                println("ENTER (CCD): $pair")
+                eventBus.publish(CollisionEvent(pair.first, pair.second, CollisionEventType.ENTER))
+            }
+        }
+        ccdContacts.clear()
         for (contact in contacts) {
             val pair = if (contact.entityA < contact.entityB)
                 contact.entityA to contact.entityB
@@ -300,12 +318,14 @@ class RuntimePhysicsSystem(
             currentContacts.add(pair)
 
             if (pair !in previousContacts) {
+                println("ENTER: $pair")
                 eventBus.publish(CollisionEvent(contact.entityA, contact.entityB, CollisionEventType.ENTER))
             }
         }
 
         for (pair in previousContacts) {
             if (pair !in currentContacts) {
+                println("EXIT: $pair")
                 eventBus.publish(CollisionEvent(pair.first, pair.second, CollisionEventType.EXIT))
             }
         }
