@@ -1,4 +1,5 @@
 package org.soyuz.util.math
+import org.soyuz.util.Debug
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -35,7 +36,7 @@ data class Vector2D(val x: Double, val y: Double) {
         if (abs(scalar) > EPSILON_NORMALIZE) {
             Vector2D(x / scalar, y / scalar)
         } else {
-            println("Division by zero detected. Did you intend scalar to be zero?")
+            Debug.log{ "Division by zero detected. Did you intend scalar to be zero?" }
             ZERO
         }
 

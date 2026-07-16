@@ -3,6 +3,7 @@ package org.soyuz
 import org.lwjgl.glfw.GLFW.*
 import org.soyuz.engine.audio.AudioSource
 import org.soyuz.engine.core.RuntimeEngine
+import org.soyuz.windowing.Window
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.Mesh
@@ -29,13 +30,15 @@ fun main() {
 
     // --- Systems & Engine Setup --//
     val camera = Camera()
-
+    val window = Window(
+        title = "Bump - AV Test v3",
+        initialWidth = width,
+        initialHeight = height
+    )
     // The RuntimeEngine now handles all GLFW init, window hints, GL capabilities,
     // audio initialization, and the camera's initial setOrtho projection.
     val engine = RuntimeEngine(
-        title = "Bump - AV Test v3",
-        windowWidth = width,
-        windowHeight = height,
+        window = window,
         physicsSystem = null,
         camera = camera
     )

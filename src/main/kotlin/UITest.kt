@@ -13,6 +13,7 @@ import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.ui.Interactive
 import org.soyuz.engine.ui.UI
 import org.soyuz.engine.collision.CircleCollider
+import org.soyuz.windowing.Window
 import org.soyuz.engine.ui.draggable
 import org.soyuz.engine.ui.hoverable
 import org.soyuz.input.KeyListener
@@ -27,10 +28,13 @@ fun main() {
     val height = 600
 
     val camera = Camera()
-    val engine = RuntimeEngine(
+    val window = Window(
         title = "Bump - Dragging Test",
-        windowWidth = width,
-        windowHeight = height,
+        initialWidth = width,
+        initialHeight = height,
+    )
+    val engine = RuntimeEngine(
+        window = window,
         physicsSystem = null,
         camera = camera
     )

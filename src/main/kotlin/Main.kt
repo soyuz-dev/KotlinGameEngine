@@ -6,6 +6,7 @@ import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RectangleCollider
 import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.core.RuntimeEngine
+import org.soyuz.windowing.Window
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.events.CollisionEvent
 import org.soyuz.engine.events.CollisionEventType
@@ -34,10 +35,14 @@ fun main() {
     val eventBus = RuntimeEventBus()
     val physicsSystem = RuntimePhysicsSystem(collisionSystem, eventBus)
 
-    val engine = RuntimeEngine(
+    val window = Window(
         title = "Bump - BrickPit",
-        windowWidth = width,
-        windowHeight = height,
+        initialWidth = width,
+        initialHeight = height,
+    )
+
+    val engine = RuntimeEngine(
+        window = window,
         physicsSystem = physicsSystem,
         camera = camera
     )
