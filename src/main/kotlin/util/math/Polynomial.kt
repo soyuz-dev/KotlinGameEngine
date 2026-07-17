@@ -6,7 +6,7 @@ package org.soyuz.util.math
  * Coefficients are stored in ascending order of degree:
  * c₀ + c₁x + c₂x² + ...
  */
-class Polynomial(vararg coeffs: Double) : (Double) -> Double{
+class Polynomial(vararg coeffs: Double) : (Double) -> Double {
 
     private val coefficients:DoubleArray = coeffs
 
