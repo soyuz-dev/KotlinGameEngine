@@ -4,10 +4,7 @@ Random brain dumps worth revisiting later. No deadlines, no promises.
 
 ---
 
-## Physics
-
-### Window as RigidBody
-Window bounds are physical entities with colliders. Dragging/resizing the window pushes objects in the scene. The OS window becomes a game mechanic, not a container.
+## Giant Idea
 
 ### Rotatable Windows
 - Simulation window (A): rotated, fully physical, contains the scene
@@ -15,7 +12,12 @@ Window bounds are physical entities with colliders. Dragging/resizing the window
 - Render A inside B, clip to A's rotated rect via stencil buffer
 - Custom window chrome (title bar, buttons) rendered as entities inside A
 - Needs: `GLFW_DECORATED`, `GLFW_TRANSPARENT_FRAMEBUFFER`, `DwmExtendFrameIntoClientArea`
-- Separate module: `bump-windowing` or `org.soyuz.windowing`
+- In theory, architecturally supported by `Window`/`WindowRuntime`/`WindowManager` split
+
+## Physics
+
+### Window as RigidBody
+Window bounds are physical entities with colliders. Dragging/resizing the window pushes objects in the scene. The OS window becomes a game mechanic, not a container.
 
 ### Growing window on collision
 Ball hits window edge → window expands in that direction. The viewport fights back.
@@ -48,9 +50,6 @@ Entities sorted by layer before drawing. Background, game, foreground, UI. Preve
 ---
 
 ## UI System
-
-### Text input field
-Focusable text field entity. Captures keyboard input via `Interactive.keyboardInput`. Renders text with blinking cursor. Returns value on enter or focus loss.
 
 ### Checkbox / Toggle
 Clickable entity with on/off state. `UI.toggle(id, x, y, initial) { value -> ... }`. Uses observable state internally.
@@ -121,7 +120,7 @@ Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 - [x] Transform with local↔world helpers
 - [x] Shader-based rendering (core profile)
 - [x] CCD with substepping and corner mitigation
-- [x] EventBus with collision events
+- [x] EventBus with collision events (ENTER/EXIT/STAY)
 - [x] EntityAwareForceField for multi-body interactions
 - [x] n-body gravity with bit-hack exponent optimization
 - [x] Painter interface with SolidColor
@@ -135,16 +134,24 @@ Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 - [x] Triple pendulum (tested stable 10+ minutes)
 - [x] Audio system (OpenAL, OGG playback, spatial audio)
 - [x] Bounding circle broadphase (3-7x performance improvement)
-- [x] Rigidbody with angular physics, friction, proper contact points
+- [x] Rigidbody with angular physics, friction, proper clipped-edge contact points
 - [x] Cross-platform build (Windows, Linux, macOS Intel + Apple Silicon)
 - [x] Color utility class
 - [x] UI System with Interactive decorator chain (clickable, hoverable, draggable, scrollable, focusable, doubleClickable)
 - [x] UISystem input router with hover/press/drag/focus/scroll state management
-- [x] UI factory (button, label, slider convenience functions)
+- [x] UI factory (button, label, slider, textInput convenience functions)
+- [x] Text input field with cursor navigation (left/right, home/end, backspace/delete)
 - [x] RuntimeEngine orchestrating UI → Physics → Dynamics → Render
 - [x] RenderSystem abstraction
 - [x] Dynamic interface for per-frame update dispatch
-- [x] Observable entity properties (onPositionChanged, onRotationChanged)
-- [x] Camera shake effect via engine.during()
-- [x] Engine timer system (forever, forEvery, after, during)
-- [x] GLFW fully encapsulated in RuntimeEngine
+- [x] Observable entity properties (onPositionChanged, onRotationChanged, onShapeChanged)
+- [x] Camera shake effect via engine.during() with NDC-correct offsets
+- [x] Engine timer system (everyFrame, forEvery, after, during)
+- [x] GLFW fully encapsulated — `Window` class, `WindowManager`, `Application`
+- [x] Multi-window support via `WindowManager` with context switching
+- [x] Polynomial class with arithmetic and calculus
+- [x] Easing library (30+ curves, polynomial-backed)
+- [x] VelocityForceField with polynomial-based drag/thrust curves
+- [x] TriangleShape with equilateral and isosceles factories
+- [x] Camera with offset support for screen effects
+- [x] Playable Asteroids demo game

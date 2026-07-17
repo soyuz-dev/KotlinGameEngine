@@ -39,21 +39,12 @@ object MathUtil {
         return m
     }
 
-    fun orthoMatrix(width: Float, height: Float): FloatArray {
-        val m = FloatArray(16)
-        m[0] = 2f / width
-        m[5] = -2f / height
-        m[10] = -1f
-        m[12] = -1f
-        m[13] = 1f
-        m[15] = 1f
-        return m
-    }
-
-    fun orthoMatrix(width: Float, height: Float, offsetX: Float = 0f, offsetY: Float = 0f): FloatArray {
+    fun orthoMatrix(width: Float, height: Float, offsetX: Float = 0f, offsetY: Float = 0f, rotation: Float = 0f): FloatArray {
+        val c = cos(rotation)
+        val s = sin(rotation)
         return floatArrayOf(
-            2f / width, 0f, 0f, 0f,
-            0f, -2f / height, 0f, 0f,
+            2f / width * c, 2f / width * s, 0f, 0f,
+            -2f / height * s, -2f / height * c, 0f, 0f,  // wait, need to think about this
             0f, 0f, -1f, 0f,
             -1f + offsetX, 1f + offsetY, 0f, 1f
         )
