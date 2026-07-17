@@ -4,4 +4,6 @@ import org.soyuz.engine.scene.Scene
 
 interface RenderSystem {
     fun render(scene: Scene, camera: Camera, shader: Shader)
+
+    fun cleanup() = Unit
 }

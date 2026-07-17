@@ -1,7 +1,6 @@
 package org.soyuz.windowing
 
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.system.MemoryUtil
 import org.soyuz.input.KeyListener
@@ -48,17 +47,14 @@ class Window(
     private var inCallback = false
 
     init {
-        if (!GLFW.glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3)
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
         handle = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, shareContext)
         if (handle == MemoryUtil.NULL) throw RuntimeException("Failed to create window")
-        GLFW.glfwMakeContextCurrent(handle)
-        GL.createCapabilities()
+        setupCallbacks()
+    }
+
+    fun configureOpenGlDefaults() {
         GL11.glEnable(GL11.GL_BLEND)
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-        setupCallbacks()
     }
 
     private fun setupCallbacks() {
@@ -72,17 +68,14 @@ class Window(
             x = xpos; y = ypos
             inCallback = false
         }
-        GLFW.glfwSetKeyCallback(handle) { _, key, _, action, _ -> KeyListener.keyCallback(0, key, 0, action, 0) }
-        GLFW.glfwSetMouseButtonCallback(handle) { _, button, action, _ ->
-            MouseListener.mouseButtonCallback(
-                0,
-                button,
-                action,
-                0
-            )
+        GLFW.glfwSetKeyCallback(handle) { window, key, scancode, action, mods ->
+            KeyListener.keyCallback(window, key, scancode, action, mods)
         }
-        GLFW.glfwSetCursorPosCallback(handle) { _, xpos, ypos -> MouseListener.mousePosCallback(0, xpos, ypos) }
-        GLFW.glfwSetScrollCallback(handle) { _, xoff, yoff -> MouseListener.mouseScrollCallback(0, xoff, yoff) }
+        GLFW.glfwSetMouseButtonCallback(handle) { window, button, action, mods ->
+            MouseListener.mouseButtonCallback(window, button, action, mods)
+        }
+        GLFW.glfwSetCursorPosCallback(handle) { window, xpos, ypos -> MouseListener.mousePosCallback(window, xpos, ypos) }
+        GLFW.glfwSetScrollCallback(handle) { window, xoff, yoff -> MouseListener.mouseScrollCallback(window, xoff, yoff) }
     }
 
     fun setCharCallback(callback: (Char) -> Unit) {
@@ -92,7 +85,6 @@ class Window(
     fun makeContextCurrent() = GLFW.glfwMakeContextCurrent(handle)
     fun shouldClose() = GLFW.glfwWindowShouldClose(handle)
     fun swapBuffers() = GLFW.glfwSwapBuffers(handle)
-    fun pollEvents() = GLFW.glfwPollEvents()
     fun setVSync(enabled: Boolean) = GLFW.glfwSwapInterval(if (enabled) 1 else 0)
     fun quit() = GLFW.glfwSetWindowShouldClose(handle, true)
     fun minimize() = GLFW.glfwIconifyWindow(handle)

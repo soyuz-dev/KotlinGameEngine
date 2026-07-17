@@ -1,7 +1,7 @@
 package org.soyuz.util
 
 object Debug {
-    @Volatile var enabled: Boolean = false
+    @Volatile var enabled: Boolean = true
 
     inline fun log(message: () -> String) {
         if (enabled) System.err.println(message())

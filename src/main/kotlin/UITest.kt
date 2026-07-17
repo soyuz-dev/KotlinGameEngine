@@ -1,6 +1,7 @@
 package org.soyuz
 
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+import org.soyuz.engine.core.Application
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.engine.entity.DefaultGameEntity
 import org.soyuz.engine.render.Camera
@@ -27,6 +28,7 @@ fun main() {
     val width = 800
     val height = 600
 
+    val application = Application()
     val camera = Camera()
     val window = Window(
         title = "Bump - Dragging Test",
@@ -38,9 +40,10 @@ fun main() {
         physicsSystem = null,
         camera = camera
     )
-    engine.init()
-    engine.shader = Assets.shader("default")
-    engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    application.windows.add(window, engine) {
+        engine.shader = Assets.shader("default")
+        engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    }
 
     val scene = RuntimeScene("drag_test")
     val font = Assets.font("roboto")
@@ -111,5 +114,5 @@ fun main() {
     }
 
     engine.loadScene(scene)
-    engine.run()
+    application.run()
 }

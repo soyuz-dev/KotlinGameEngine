@@ -1,16 +1,11 @@
 package org.soyuz.engine.core
 
-import org.lwjgl.glfw.GLFW.glfwGetTime
-import org.soyuz.engine.audio.AudioSystem
 import org.soyuz.engine.physics.PhysicsSystem
 import org.soyuz.engine.render.Camera
 import org.soyuz.engine.render.RenderSystem
 import org.soyuz.engine.render.Shader
 import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.ui.UISystem
-import org.soyuz.input.KeyListener
-import org.soyuz.input.MouseListener
-import org.soyuz.util.Assets
 import org.soyuz.util.Dynamic
 import org.soyuz.windowing.Window
 
@@ -35,6 +30,7 @@ class RuntimeEngine(
 
     private var currentScene: Scene? = null
     private var running = false
+    private var renderResourcesCleaned = false
     private val timers = mutableListOf<Timer>()
 
     private data class Timer(
@@ -47,10 +43,8 @@ class RuntimeEngine(
     private enum class TimerType { INTERVAL, ONE_SHOT, DURING, FOREVER }
 
     fun init() {
-        window.makeContextCurrent()
         window.setCharCallback { onChar(it) }
         camera.setOrtho(window.width.toFloat(), window.height.toFloat())
-        AudioSystem.init()
     }
 
     fun onChar(char: Char) {
@@ -82,6 +76,7 @@ class RuntimeEngine(
 
     override fun start() {
         if (running) return
+        check(!renderResourcesCleaned) { "Cannot restart an engine after its render resources have been cleaned." }
         if (!::renderSystem.isInitialized || !::shader.isInitialized) {
             throw IllegalStateException("renderSystem and shader must be assigned before starting the engine.")
         }
@@ -90,11 +85,14 @@ class RuntimeEngine(
     }
 
     override fun stop() {
-        if (!running) return
-        running = false
-        currentScene?.cleanup()
-        AudioSystem.cleanup()
-        Assets.cleanup()
+        if (running) {
+            running = false
+            currentScene?.cleanup()
+        }
+        if (!renderResourcesCleaned && ::renderSystem.isInitialized) {
+            renderSystem.cleanup()
+            renderResourcesCleaned = true
+        }
     }
 
     private var physicsAccumulator = 0.0
@@ -132,28 +130,18 @@ class RuntimeEngine(
     }
 
     fun render() {
+        window.makeContextCurrent()
+        renderCurrentContext()
+    }
+
+    fun renderCurrentContext() {
         if (!running) return
         val scene = currentScene ?: return
-        window.makeContextCurrent()
         renderSystem.render(scene, camera, shader)
     }
 
     override fun run() {
-        start()
-        var lastTime = glfwGetTime()
-        while (!window.shouldClose()) {
-            val currentTime = glfwGetTime()
-            val dt = (currentTime - lastTime).toFloat().coerceIn(0f, DEFAULT_MAX_FRAME_DELTA.toFloat())
-            lastTime = currentTime
-            window.pollEvents()
-            update(dt)
-            render()
-            window.swapBuffers()
-            KeyListener.endFrame()
-            MouseListener.endFrame()
-        }
-        stop()
-        window.destroy()
+        throw UnsupportedOperationException("Use Application and WindowManager to run RuntimeEngine instances.")
     }
 
     // Window delegation

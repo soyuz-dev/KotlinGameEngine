@@ -2,6 +2,7 @@ package org.soyuz
 
 import org.lwjgl.glfw.GLFW.*
 import org.soyuz.engine.audio.AudioSource
+import org.soyuz.engine.core.Application
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.windowing.Window
 import org.soyuz.engine.entity.DefaultGameEntity
@@ -29,26 +30,23 @@ fun main() {
     val height = 600
 
     // --- Systems & Engine Setup --//
+    val application = Application()
     val camera = Camera()
     val window = Window(
         title = "Bump - AV Test v3",
         initialWidth = width,
         initialHeight = height
     )
-    // The RuntimeEngine now handles all GLFW init, window hints, GL capabilities,
-    // audio initialization, and the camera's initial setOrtho projection.
     val engine = RuntimeEngine(
         window = window,
         physicsSystem = null,
         camera = camera
     )
 
-
-    engine.init()
-
-
-    engine.shader = Assets.shader("default")
-    engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    application.windows.add(window, engine) {
+        engine.shader = Assets.shader("default")
+        engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    }
 
     // --- Scene Setup ---
     val scene = RuntimeScene("av_test")
@@ -180,8 +178,5 @@ fun main() {
         engine.width = (600 + 200 * pulse).roundToInt()
     }
 
-    // --- Run Loop ---
-    // Start game execution. It automatically blocks, polls, updates,
-    // renders, handles timers, and then cleans up everything.
-    engine.run()
+    application.run()
 }

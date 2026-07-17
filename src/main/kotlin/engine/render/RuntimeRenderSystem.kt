@@ -52,4 +52,9 @@ class RuntimeRenderSystem(
             }
         }
     }
+
+    override fun cleanup() {
+        quadMesh.cleanup()
+        circleMesh.cleanup()
+    }
 }

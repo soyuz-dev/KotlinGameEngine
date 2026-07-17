@@ -17,8 +17,14 @@ object AudioSystem {
 
 
     fun init() {
+        if (initialised) return
         device = ALC11.alcOpenDevice(null as ByteBuffer?)
+        if (device == 0L) throw IllegalStateException("Unable to open OpenAL device.")
         context = ALC11.alcCreateContext(device, null as IntBuffer?)
+        if (context == 0L) {
+            ALC11.alcCloseDevice(device)
+            throw IllegalStateException("Unable to create OpenAL context.")
+        }
         ALC11.alcMakeContextCurrent(context)
         AL.createCapabilities(ALC.createCapabilities(device))
         initialised = true
@@ -32,6 +38,8 @@ object AudioSystem {
     }
 
     fun cleanup() {
+        if (!initialised) return
+        ALC11.alcMakeContextCurrent(0L)
         ALC11.alcDestroyContext(context)
         ALC11.alcCloseDevice(device)
         initialised = false

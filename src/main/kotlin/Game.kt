@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFW.*
 import org.soyuz.engine.collision.CircleCollider
 import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.collision.TriangleCollider
+import org.soyuz.engine.core.Application
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.windowing.Window
 import org.soyuz.engine.entity.DefaultGameEntity
@@ -33,6 +34,7 @@ fun main() {
     val width = 800
     val height = 600
 
+    val application = Application()
     val camera = Camera()
     val collisionSystem = RuntimeCollisionSystem()
     val eventBus = RuntimeEventBus()
@@ -48,9 +50,10 @@ fun main() {
         physicsSystem = physicsSystem,
         camera = camera
     )
-    engine.init()
-    engine.shader = Assets.shader("default")
-    engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    application.windows.add(window, engine) {
+        engine.shader = Assets.shader("default")
+        engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    }
 
     val scene = RuntimeScene("asteroids")
     var entityCount = 0
@@ -237,5 +240,5 @@ fun main() {
     }
 
     engine.loadScene(scene)
-    engine.run()
+    application.run()
 }

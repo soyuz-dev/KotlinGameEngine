@@ -2,6 +2,7 @@ package org.soyuz
 
 import org.lwjgl.glfw.GLFW.*
 import org.soyuz.engine.collision.TriangleCollider
+import org.soyuz.engine.core.Application
 import org.soyuz.engine.core.RuntimeEngine
 import org.soyuz.windowing.Window
 import org.soyuz.engine.entity.DefaultGameEntity
@@ -23,6 +24,7 @@ import kotlin.math.cos
 fun main() {
     val width = 800
     val height = 600
+    val application = Application()
     val window = Window(
         title = "Bump - Triangle Test",
         initialWidth = width,
@@ -34,9 +36,10 @@ fun main() {
         physicsSystem = null,
         camera = camera
     )
-    engine.init()
-    engine.shader = Assets.shader("default")
-    engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    application.windows.add(window, engine) {
+        engine.shader = Assets.shader("default")
+        engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
+    }
 
     val scene = RuntimeScene("triangle_test")
 
@@ -128,5 +131,5 @@ fun main() {
     }
 
     engine.loadScene(scene)
-    engine.run()
+    application.run()
 }
