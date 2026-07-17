@@ -33,7 +33,7 @@ fun main() {
     val application = Application()
     val camera = Camera()
     val window = Window(
-        title = "Bump - AV Test v3",
+        title = "Bump - AV Test v4",
         initialWidth = width,
         initialHeight = height
     )
@@ -83,11 +83,11 @@ fun main() {
     scene.addEntity(dog)
 
     // FPS counter
-    val fpsLabel = UI.label("fps", width / 2.0, 10.0, "FPS: 0", font, 20f, Color(255, 255, 255))
+    val fpsLabel = UI.label("fps", width / 2.0, 10.0, "Press ESC to exit | FPS: 0", font, 20f, Color(255, 255, 255))
     scene.addEntity(fpsLabel)
 
     // Title
-    val title = UI.label("title", width / 2.0, 60.0, "Bump AV Test v2", font, 40f, Color(255, 200, 255))
+    val title = UI.label("title", width / 2.0, 60.0, "Bump AV Test v4", font, 40f, Color(255, 200, 255))
     scene.addEntity(title)
 
     // Pulsing circle
@@ -101,22 +101,15 @@ fun main() {
     val playBtn = UI.button("play", width / 2.0, height - 80.0, 200.0, 50.0) {
         println("Play clicked!")
 
-        // Camera shake using the `during` interval logic
         engine.during(500.0) { progress ->
-            val intensity = (1.0 - progress) * 20.0  // decay from 20px to 0
-            val offsetX = (Math.random() - 0.5) * intensity
-            val offsetY = (Math.random() - 0.5) * intensity * 0.2
-
-            // Note: utilizing engine.width/height dynamically bounds logic
-            // safely in case the window gets resized during the shake
-            camera.setOrtho(
-                (engine.width + offsetX).toFloat(),
-                (engine.height + offsetY).toFloat()
-            )
+            val intensity = (1.0 - progress) * 20.0
+            val ox = ((Math.random() - 0.5) * intensity).toFloat()
+            val oy = ((Math.random() - 0.5) * intensity * 0.2).toFloat()
+            camera.setOffset(ox, oy)
         }
-        // Reset camera exactly after shake
+
         engine.after(500.0) {
-            camera.setOrtho(engine.width.toFloat(), engine.height.toFloat())
+            camera.setOffset(0f, 0f)
         }
     }
     scene.addEntity(playBtn)
@@ -167,7 +160,7 @@ fun main() {
         }
 
         val fpsPainter = fpsLabel.painter as TextPainter
-        fpsPainter.text = "FPS: ${displayFps.toInt()}"
+        fpsPainter.text = "Press ESC to exit | FPS: ${displayFps.toInt()}"
         fpsLabel.shape = RectangleShape(
             fpsPainter.texture?.width?.toDouble() ?: 100.0,
             fpsPainter.texture?.height?.toDouble() ?: 30.0
@@ -176,7 +169,11 @@ fun main() {
         val pulse = sin(time * 3.0)
         circle.shape = CircleShape(60.0 * pulse + 80.0)
         engine.width = (600 + 200 * pulse).roundToInt()
+        window.y = (60 + 20 * pulse).roundToInt()
     }
+
+    window.x = 0
+    window.y = 0
 
     application.run()
 }

@@ -49,4 +49,13 @@ object MathUtil {
         m[15] = 1f
         return m
     }
+
+    fun orthoMatrix(width: Float, height: Float, offsetX: Float = 0f, offsetY: Float = 0f): FloatArray {
+        return floatArrayOf(
+            2f / width, 0f, 0f, 0f,
+            0f, -2f / height, 0f, 0f,
+            0f, 0f, -1f, 0f,
+            -1f + offsetX, 1f + offsetY, 0f, 1f
+        )
+    }
 }
