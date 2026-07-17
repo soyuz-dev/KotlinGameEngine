@@ -15,18 +15,10 @@ class RuntimeEngine(
     private val camera: Camera
 ) : Engine, Dynamic {
 
+    private val pendingTimers = mutableListOf<Timer>()
+
     lateinit var renderSystem: RenderSystem
     lateinit var shader: Shader
-
-    var width: Int
-        get() = window.width
-        set(value) {window.width = value }
-    var height: Int
-        get() = window.height
-        set(value) {window.height = value }
-    var title: String
-        get() = window.title
-        set(value) {window.title = value }
 
     private var currentScene: Scene? = null
     private var running = false
@@ -146,15 +138,7 @@ class RuntimeEngine(
 
     // Window delegation
     fun quit() = window.quit()
-    fun minimize() = window.minimize()
-    fun restore() = window.restore()
-    fun maximize() = window.maximize()
-    fun isMinimized() = window.isMinimized()
-    fun isMaximized() = window.isMaximized()
-    fun isFocused() = window.isFocused()
-    fun center() = window.center()
-    fun setFullscreen(fullscreen: Boolean) = window.setFullscreen(fullscreen)
-    fun setVSync(enabled: Boolean) = window.setVSync(enabled)
+
 
     override fun invoke(callback: (dt: Double) -> Unit) = everyFrame(callback)
 
