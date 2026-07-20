@@ -50,7 +50,7 @@ class RuntimeEngine(
     }
 
     fun forEvery(ms: Double, callback: () -> Unit) {
-        timers.add(Timer(intervalMs = ms, type = TimerType.INTERVAL) { callback() })
+        pendingTimers.add(Timer(intervalMs = ms, type = TimerType.INTERVAL) { callback() })
     }
 
     fun everyFrame(callback: (dt: Double) -> Unit) {
@@ -58,11 +58,11 @@ class RuntimeEngine(
     }
 
     fun after(ms: Double, callback: () -> Unit) {
-        timers.add(Timer(intervalMs = ms, type = TimerType.ONE_SHOT) { callback() })
+        pendingTimers.add(Timer(intervalMs = ms, type = TimerType.ONE_SHOT) { callback() })
     }
 
     fun during(ms: Double, callback: (progress: Double) -> Unit) {
-        timers.add(Timer(intervalMs = ms, type = TimerType.DURING, callback = callback))
+        pendingTimers.add(Timer(intervalMs = ms, type = TimerType.DURING, callback = callback))
     }
 
     override fun loadScene(scene: Scene) {
@@ -124,6 +124,9 @@ class RuntimeEngine(
                 TimerType.FOREVER -> { timer.callback(dt.toDouble()); false }
             }
         }
+
+        timers.addAll(pendingTimers)
+        pendingTimers.clear()
     }
 
     fun render() {
