@@ -208,22 +208,22 @@ fun main() {
     // --- Main loop ---
     engine { dt ->
         // Ship rotation
-        if (KeyListener.isKeyDown(GLFW_KEY_LEFT) || KeyListener.isKeyDown(GLFW_KEY_A)) {
+        if (KeyListener.isKeyDown(window.handle, GLFW_KEY_LEFT) || KeyListener.isKeyDown(window.handle, GLFW_KEY_A)) {
             ship.rotation -= 5.0 * dt
         }
-        if (KeyListener.isKeyDown(GLFW_KEY_RIGHT) || KeyListener.isKeyDown(GLFW_KEY_D)) {
+        if (KeyListener.isKeyDown(window.handle, GLFW_KEY_RIGHT) || KeyListener.isKeyDown(window.handle, GLFW_KEY_D)) {
             ship.rotation += 5.0 * dt
         }
 
         // Thrust
         val thrustAngle = ship.rotation + PI / 2 // ship points up by default
-        if (KeyListener.isKeyDown(GLFW_KEY_UP) || KeyListener.isKeyDown(GLFW_KEY_W)) {
+        if (KeyListener.isKeyDown(window.handle, GLFW_KEY_UP) || KeyListener.isKeyDown(window.handle, GLFW_KEY_W)) {
             val thrustForce = Vector2D(cos(thrustAngle), sin(thrustAngle)) * 50.0
             shipBody.applyForce(thrustForce)
         }
 
         // Shoot
-        if (KeyListener.isKeyDown(GLFW_KEY_J)) {
+        if (KeyListener.isKeyDown(window.handle, GLFW_KEY_J)) {
             val noseDist = 18.0
             val noseX = ship.position.x + cos(thrustAngle) * noseDist
             val noseY = ship.position.y + sin(thrustAngle) * noseDist
@@ -234,7 +234,7 @@ fun main() {
         scene.allEntities().forEach { wrapEntity(it) }
 
         // Quit
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+        if (KeyListener.isKeyJustPressed(window.handle, GLFW_KEY_ESCAPE)) {
             engine.quit()
         }
     }

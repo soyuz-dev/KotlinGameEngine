@@ -5,30 +5,31 @@ import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 
 object KeyListener {
 
-    private val keyDown = BooleanArray(350)
-    private val keyDownLast = BooleanArray(350)
+    private val keyDown = mutableMapOf<Long, BooleanArray>()
+    private val keyDownLast = mutableMapOf<Long, BooleanArray>()
 
-    fun keyCallback(windowLoc: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-        if (key in keyDown.indices) {
-            when (action) {
-                GLFW_PRESS -> keyDown[key] = true
-                GLFW_RELEASE -> keyDown[key] = false
-            }
+    fun keyCallback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
+        val keys = keyDown.getOrPut(window) { BooleanArray(350) }
+        when (action) {
+            GLFW_PRESS -> keys[key] = true
+            GLFW_RELEASE -> keys[key] = false
         }
     }
 
-    fun endFrame() {
-        for (i in keyDown.indices) {
-            keyDownLast[i] = keyDown[i]
+    fun endFrame(window : Long) {
+        val keys = keyDown.getOrPut(window) { BooleanArray(350) }
+        val lastKeys = keyDownLast.getOrPut(window) { BooleanArray(350) }
+        for (i in keys.indices) {
+            lastKeys[i] = keys[i]
         }
     }
 
-    fun isKeyDown(key: Int): Boolean =
-        keyDown.getOrElse(key) { false }
+    fun isKeyDown(window:Long, key: Int): Boolean =
+        keyDown[window]?.getOrElse(key) { false } ?: false
 
-    fun isKeyJustPressed(key: Int): Boolean =
-        isKeyDown(key) && !keyDownLast.getOrElse(key) { false }
+    fun isKeyJustPressed(window: Long, key: Int): Boolean =
+        isKeyDown(window, key) && !(keyDownLast[window]?.getOrElse(key) { false } ?: false)
 
-    fun isKeyJustReleased(key: Int): Boolean =
-        !isKeyDown(key) && keyDownLast.getOrElse(key) { false }
+    fun isKeyJustReleased(window: Long, key: Int): Boolean =
+        !isKeyDown(window, key) && (keyDownLast[window]?.getOrElse(key) { false } ?: false)
 }

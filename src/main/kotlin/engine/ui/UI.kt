@@ -13,7 +13,7 @@ import org.soyuz.util.Color
 import org.soyuz.util.math.Transform
 import org.soyuz.util.math.Vector2D
 
-object UI {
+class UI(private val uiSystem: UISystem) {
     fun button(
         id: String,
         x: Double, y: Double,
@@ -36,7 +36,7 @@ object UI {
             .let { base -> object : InteractiveDecorator(base) {
                 override fun onPress(button: Int) { btn.painter = press; base.onPress(button) }
                 override fun onRelease(button: Int) {
-                    btn.painter = if (UISystem.getState(id).isHovered) hover else normal
+                    btn.painter = if (uiSystem.getState(id).isHovered) hover else normal
                     base.onRelease(button)
                 }
             }}

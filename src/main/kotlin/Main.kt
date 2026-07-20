@@ -131,8 +131,8 @@ fun main() {
     makeBall(2 * width / 3.0, height / 2.0, -200.0, -300.0, mass = 0.5, radius = 8.0)
 
     engine {
-        if (MouseListener.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-            val mPos = MouseListener.getPos()
+        if (MouseListener.isMouseJustPressed(window.handle, GLFW_MOUSE_BUTTON_LEFT)) {
+            val mPos = MouseListener.getPos(window.handle)
             if (Math.random() < 0.5) {
                 val r = 5.0 + Math.random() * 15.0
                 val vx = (Math.random() - 0.5) * 600.0
@@ -147,7 +147,7 @@ fun main() {
                 makeBrick(mPos.x, mPos.y, vx, vy, w = w, h = h, mass = 0.5 + Math.random() * 2.0, angVel = angVel)
             }
         }
-        engine.title = "Bump!   Thinguses:$entityCount, fps: ${(1/it).roundToInt()}"
+        window.title = "Bump!   Thinguses:$entityCount, fps: ${(1/it).roundToInt()}"
     }
 
     engine.loadScene(scene)

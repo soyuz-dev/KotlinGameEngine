@@ -52,8 +52,8 @@ fun main() {
         val g = (180 + sin(triTime * 2.5) * 70).toInt()
         val b = (220 + sin(triTime * 3.0) * 35).toInt()
         triangle.painter = SolidColor(Color(r, g, b))
-        engine1.title = "Triangle | FPS: ${(1.0 / dt).toInt()}"
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) engine1.quit()
+        engine1.window.title = "Triangle | FPS: ${(1.0 / dt).toInt()}"
+        if (KeyListener.isKeyJustPressed(engine1.window.handle, GLFW_KEY_ESCAPE)) engine1.quit()
     }
 
     engine1.loadScene(scene1)
@@ -87,8 +87,8 @@ fun main() {
         val g = (130 + sin(circleTime * 2.0) * 80).toInt()
         val b = (80 + sin(circleTime * 2.5) * 100).toInt()
         circle.painter = SolidColor(Color(r, g, b))
-        engine2.title = "Circle | FPS: ${(1.0 / dt).toInt()}"
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) engine2.quit()
+        engine2.window.title = "Circle | FPS: ${(1.0 / dt).toInt()}"
+        if (KeyListener.isKeyJustPressed(engine2.window.handle, GLFW_KEY_ESCAPE)) engine2.quit()
     }
 
     engine2.loadScene(scene2)

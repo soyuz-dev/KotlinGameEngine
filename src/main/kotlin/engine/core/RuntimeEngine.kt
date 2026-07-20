@@ -6,15 +6,20 @@ import org.soyuz.engine.render.RenderSystem
 import org.soyuz.engine.render.Shader
 import org.soyuz.engine.scene.Scene
 import org.soyuz.engine.ui.UISystem
+import org.soyuz.engine.ui.UI
+import org.soyuz.input.Input
 import org.soyuz.util.Dynamic
 import org.soyuz.windowing.Window
 
 class RuntimeEngine(
     val window: Window,
     private val physicsSystem: PhysicsSystem?,
-    private val camera: Camera
+    private val camera: Camera,
 ) : Engine, Dynamic {
 
+    val input = Input(window.handle)
+    private val uiSystem = UISystem(input)
+    val ui = UI(uiSystem)
     private val pendingTimers = mutableListOf<Timer>()
 
     lateinit var renderSystem: RenderSystem
@@ -41,7 +46,7 @@ class RuntimeEngine(
 
     fun onChar(char: Char) {
         val scene = currentScene ?: return
-        UISystem.handleChar(char, scene.allEntities())
+        uiSystem.handleChar(char, scene.allEntities())
     }
 
     fun forEvery(ms: Double, callback: () -> Unit) {
@@ -100,7 +105,7 @@ class RuntimeEngine(
         }
 
         val entities = scene.allEntities()
-        UISystem.update(entities)
+        uiSystem.update(entities)
         entities.forEach { (it.painter as? Dynamic)?.update(dt) }
 
         val dtMs = dt * 1000.0

@@ -83,11 +83,11 @@ fun main() {
     scene.addEntity(dog)
 
     // FPS counter
-    val fpsLabel = UI.label("fps", width / 2.0, 10.0, "Press ESC to exit | FPS: 0", font, 20f, Color(255, 255, 255))
+        val fpsLabel = engine.ui.label("fps", width / 2.0, 10.0, "Press ESC to exit | FPS: 0", font, 20f, Color(255, 255, 255))
     scene.addEntity(fpsLabel)
 
     // Title
-    val title = UI.label("title", width / 2.0, 60.0, "Bump AV Test v4", font, 40f, Color(255, 200, 255))
+    val title = engine.ui.label("title", width / 2.0, 60.0, "Bump AV Test v4", font, 40f, Color(255, 200, 255))
     scene.addEntity(title)
 
     // Pulsing circle
@@ -98,7 +98,7 @@ fun main() {
     scene.addEntity(circle)
 
     // Play button
-    val playBtn = UI.button("play", width / 2.0, height - 80.0, 200.0, 50.0) {
+    val playBtn = engine.ui.button("play", width / 2.0, height - 80.0, 200.0, 50.0) {
         println("Play clicked!")
 
         engine.during(500.0) { progress ->
@@ -155,7 +155,7 @@ fun main() {
             if (dt > 0) (1f / dt) else 0f
         }
 
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+        if (KeyListener.isKeyJustPressed(engine.window.handle,GLFW_KEY_ESCAPE)) {
             engine.quit()
         }
 
@@ -168,7 +168,7 @@ fun main() {
 
         val pulse = sin(time * 3.0)
         circle.shape = CircleShape(60.0 * pulse + 80.0)
-        engine.width = (600 + 200 * pulse).roundToInt()
+        window.width = (600 + 200 * pulse).roundToInt()
         window.y = (60 + 20 * pulse).roundToInt()
     }
 

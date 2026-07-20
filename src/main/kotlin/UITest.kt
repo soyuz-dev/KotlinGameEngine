@@ -49,10 +49,10 @@ fun main() {
     val font = Assets.font("roboto")
 
     // Volume label
-    val volumeLabel = UI.label("volume_label", width / 2.0, height - 130.0, "Volume: 50%", font, 16f, Color(200, 200, 200))
+    val volumeLabel = engine.ui.label("volume_label", width / 2.0, height - 130.0, "Volume: 50%", font, 16f, Color(200, 200, 200))
     scene.addEntity(volumeLabel)
     // --- Slider ---
-    val (sliderTrack, sliderThumb) = UI.slider(
+    val (sliderTrack, sliderThumb) = engine.ui.slider(
         "volume", width / 2.0, height - 100.0, 300.0, 30.0,
         min = 0.0, max = 100.0, initial = 50.0
     ) { value ->
@@ -80,10 +80,10 @@ fun main() {
         )
     scene.addEntity(circle)
     // Circle label
-    val circleLabel = UI.label("circle_label", 150.0, 80.0, "Drag the circle too!", font, 14f, Color(200, 200, 200))
+    val circleLabel = engine.ui.label("circle_label", 150.0, 80.0, "Drag the circle too!", font, 14f, Color(200, 200, 200))
     scene.addEntity(circleLabel)
     // Instructions
-    val instrLabel = UI.label("instr", width / 2.0, 20.0, "Drag the circle, and slider. And also type in your name!", font, 14f, Color(150, 150, 150))
+    val instrLabel = engine.ui.label("instr", width / 2.0, 20.0, "Drag the circle, and slider. And also type in your name!", font, 14f, Color(150, 150, 150))
     scene.addEntity(instrLabel)
 
 
@@ -91,11 +91,11 @@ fun main() {
         circleLabel.position = pos + Vector2D(0.0, -50.0)
     }
 
-    val nameLabel = UI.label("namelabel", width / 2.0, 600.0, "where", font, 14f, Color(150, 150, 150))
+    val nameLabel = engine.ui.label("namelabel", width / 2.0, 600.0, "where", font, 14f, Color(150, 150, 150))
     scene.addEntity(nameLabel)
 
 
-    val (nameInput, nameInputBG) = UI.textInput("name", 400.0, 300.0, font = font, placeholder = "Enter name...", background = SolidColor(Color(60, 10, 30))) { text ->
+    val (nameInput, nameInputBG) = engine.ui.textInput("name", 400.0, 300.0, font = font, placeholder = "Enter name...", background = SolidColor(Color(60, 10, 30))) { text ->
         (nameLabel.painter as? TextPainter)?.text = text
         (nameLabel.painter as? Dynamic)?.update(.0f)
     }
@@ -108,7 +108,7 @@ fun main() {
     }
 
     engine {
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+        if (KeyListener.isKeyJustPressed(window.handle, GLFW_KEY_ESCAPE)) {
             engine.quit()
         }
     }

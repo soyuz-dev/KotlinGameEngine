@@ -5,7 +5,7 @@ import org.soyuz.input.Input
 import org.soyuz.util.math.Vector2D
 import org.lwjgl.glfw.GLFW.*
 
-object UISystem {
+class UISystem (private val input: Input) {
     private val states = mutableMapOf<String, UIState>()
     private var hoveredId: String? = null
     private var pressedId: String? = null
@@ -18,7 +18,7 @@ object UISystem {
     private var lastMousePos = Vector2D.ZERO
 
     fun update(entities: List<GameEntity>) {
-        val mousePos = Input.mousePosition()
+        val mousePos = input.mousePosition
         val mouseDelta = mousePos - lastMousePos
         lastMousePos = mousePos
 
@@ -41,14 +41,14 @@ object UISystem {
         }
 
         // --- Scroll ---
-        val scroll = Input.scroll()
+        val scroll = input.scroll()
         if (scroll.x != 0.0 || scroll.y != 0.0) {
             val target = hit ?: focusedId?.let { id -> entities.find { it.id == id } }
             target?.interactive?.onScroll(scroll.x, scroll.y)
         }
 
         // --- Press ---
-        if (Input.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input.isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             if (hit != null) {
                 // Focus on press
                 if (hit.id != focusedId) {
@@ -76,7 +76,7 @@ object UISystem {
         }
 
         // --- Drag ---
-        if (pressedId != null && Input.isMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (pressedId != null && input.isMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
             val pressed = entities.find { it.id == pressedId }
             if (pressed != null) {
                 if (dragId == null && mouseDelta.length() > 1.0) {
@@ -95,7 +95,7 @@ object UISystem {
         }
 
         // --- Release ---
-        if (Input.isMouseJustReleased(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input.isMouseJustReleased(GLFW_MOUSE_BUTTON_LEFT)) {
             pressedId?.let { id ->
                 val pressed = entities.find { it.id == id }
                 pressed?.interactive?.onRelease(GLFW_MOUSE_BUTTON_LEFT)
@@ -134,8 +134,8 @@ object UISystem {
         // --- Keyboard ---
         val focused = focusedId?.let { id -> entities.find { it.id == id } }
         for (key in 0..348) {
-            if (Input.isKeyJustPressed(key)) focused?.interactive?.onKeyPress(key)
-            if (Input.isKeyJustReleased(key)) focused?.interactive?.onKeyRelease(key)
+            if (input.isKeyJustPressed(key)) focused?.interactive?.onKeyPress(key)
+            if (input.isKeyJustReleased(key)) focused?.interactive?.onKeyRelease(key)
         }
     }
 

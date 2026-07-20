@@ -100,7 +100,7 @@ fun main() {
 
     // --- Instructions ---
     val font = Assets.font("roboto")
-    val instrLabel = org.soyuz.engine.ui.UI.label(
+    val instrLabel = engine.ui.label(
         "instr", width / 2.0, 20.0,
         "6 static triangles | 1 draggable (center) | 1 pulsing (bottom) | 1 rotating (left) | ESC to exit",
         font, 12f, Color(180, 180, 180)
@@ -125,7 +125,7 @@ fun main() {
         // Rotate the left triangle continuously
         rotTri.rotation += dt * 2.0
 
-        if (KeyListener.isKeyJustPressed(GLFW_KEY_ESCAPE)) {
+        if (KeyListener.isKeyJustPressed(window.handle, GLFW_KEY_ESCAPE)) {
             engine.quit()
         }
     }

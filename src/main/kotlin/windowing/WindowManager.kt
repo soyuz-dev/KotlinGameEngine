@@ -47,8 +47,11 @@ class WindowManager {
                 }
             }
 
-            KeyListener.endFrame()
-            MouseListener.endFrame()
+            windows.forEach {
+                KeyListener.endFrame(it.window.handle)
+                MouseListener.endFrame(it.window.handle)
+            }
+
         }
     }
 
