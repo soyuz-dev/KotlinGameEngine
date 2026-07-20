@@ -41,7 +41,7 @@ class UISystem (private val input: Input) {
         }
 
         // --- Scroll ---
-        val scroll = input.scroll()
+        val scroll = input.scroll
         if (scroll.x != 0.0 || scroll.y != 0.0) {
             val target = hit ?: focusedId?.let { id -> entities.find { it.id == id } }
             target?.interactive?.onScroll(scroll.x, scroll.y)
