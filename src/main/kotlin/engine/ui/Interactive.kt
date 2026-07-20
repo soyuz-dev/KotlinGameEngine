@@ -42,6 +42,8 @@ interface Interactive {
             }
         }
 
+        operator fun invoke(containsPoint: (Vector2D) -> Boolean): Interactive = empty(containsPoint)
+
         // Factory methods for starting decorator chains
         fun clickable(
             containsPoint: (Vector2D) -> Boolean,

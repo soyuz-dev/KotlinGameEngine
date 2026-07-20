@@ -7,12 +7,12 @@ A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow 
 Feature-complete for 2D games. The engine runs, the commit messages are unhinged, the DSL is next.
 
 ### What works
-- **Application & Windowing:** `Application` owns GLFW lifecycle and global config. `Window` is a pure GLFW wrapper with mutable properties and recursion-safe callbacks. `WindowRuntime` binds a window to an engine with per-window OpenGL capabilities. `WindowManager` orchestrates multiple windows with context switching and global timers.
-- **Engine:** `RuntimeEngine` orchestrates UI → Physics → Dynamics → Render. Fixed-timestep physics, timers (`everyFrame`, `forEvery`, `after`, `during`), and `Dynamic` interface for per-frame updates. No GLFW knowledge.
-- **Rendering:** Modern OpenGL 3.3 core profile, shader-based (`Shader`, `Mesh`, `Camera`), `Painter` interface with `SolidColor`, `ImagePainter`, and `TextPainter`, `DynamicPainter` for animated visuals, VAO/VBO circle/quad/triangle meshes with UV support, STB-based `Texture` loading, STB TrueType `Font` rendering, `Assets` object for resource caching, alpha blending, `RenderSystem` abstraction, `Camera` with offset support for screen shake
+- **Application & Windowing:** `Application` object owns GLFW lifecycle and global config. `Window` is a pure GLFW wrapper with mutable properties and recursion-safe callbacks. `WindowManager` orchestrates multiple windows with context switching and per-window input routing.
+- **Engine:** `RuntimeEngine` scopes `UISystem`, `UI` factory, `Input`, timers (`everyFrame`, `forEvery`, `after`, `during`), and the `Dynamic` update loop. No GLFW knowledge. Fixed-timestep physics.
+- **Rendering:** Modern OpenGL 3.3 core profile, shader-based (`Shader`, `Mesh`, `Camera`), `Painter` interface with `SolidColor`, `ImagePainter`, and `TextPainter`, `DynamicPainter` for animated visuals, VAO/VBO circle/quad/triangle meshes with UV support, STB-based `Texture` loading, STB TrueType `Font` rendering, context-aware `Assets` caching, alpha blending, `RenderSystem` abstraction, `Camera` with offset support for screen shake
 - **Audio:** OpenAL-based `AudioSystem`, `AudioClip` (OGG via STB Vorbis), `AudioSource` with volume/pitch/looping, spatial audio support
-- **Input:** Keyboard, mouse, scroll — single `Input` object
-- **UI System:** `Interactive` interface with decorator chain (`clickable`, `hoverable`, `draggable`, `scrollable`, `focusable`, `doubleClickable`), `UISystem` input router with hover/press/drag/focus/scroll state management, `UI` convenience factory (`button`, `label`, `slider`, `textInput`), hit-testing via existing collider infrastructure, `UIState` per entity, observable entity properties with `onPositionChanged`/`onRotationChanged`/`onShapeChanged`
+- **Input:** Per-window `Input` instance wrapping `KeyListener`/`MouseListener` with window-handle-keyed state
+- **UI System:** `Interactive` interface with decorator chain (`clickable`, `hoverable`, `draggable`, `scrollable`, `focusable`, `doubleClickable`, `keyboardInput`), `UISystem` input router with hover/press/drag/focus/scroll state management, `UI` convenience factory (`button`, `label`, `slider`, `textInput`), hit-testing via existing collider infrastructure, `UIState` per entity, `Interactive.empty { }` + `Interactive { }` invoke shorthand
 - **Math:** `Vector2D` with infix `dot` and `cross`, `Transform` with local↔world helpers, `Polynomial` class with arithmetic/calculus, `Easing` library (30+ curves, polynomial-backed), `MathUtil` with `modelMatrix` and `orthoMatrix`, `Color` utility
 - **Shapes:** `CircleShape`, `RectangleShape`, `TriangleShape` with `equilateral` and `isosceles` factories, `Aabb2D`, `ShapeQueries`
 - **Physics bodies:** `PointMass` (Verlet integration), `KinematicBody`, `RigidBody` (linear + angular with moment of inertia)
@@ -24,22 +24,23 @@ Feature-complete for 2D games. The engine runs, the commit messages are unhinged
 - **Event bus:** `RuntimeEventBus` with type-based pub/sub, `CollisionEvent` with `CollisionEventType` (ENTER/EXIT/STAY)
 - **Scene graph:** `Scene`, `RuntimeScene`, entity management
 - **Observable entities:** Properties like `position`, `rotation`, and `shape` fire change listeners for reactive updates
+- **Timer system:** Deferred registration via `pendingTimers` to prevent concurrent modification during iteration. `everyFrame`, `forEvery`, `after`, `during`.
 - **Debug utility:** Zero-overhead inline logging via `Debug` object
-- **Cross-platform:** Windows, Linux, macOS (Intel + Apple Silicon) via Gradle build
+- **Cross-platform:** Windows, Linux, macOS (Intel + Apple Silicon) via Gradle build with auto-detected natives
 
 ### In progress
 - DSL (`engine { scene { ... } }`)
 - Spatial hash broadphase
 - `PainterModifier` system (tint, opacity, clip)
-- Rotatable windows (see [IDEAS.md](IDEAS.md))
+- Rotatable windows (see [IDEAS.md](IDEAS.md) — architecturally supported by `Window`/`WindowManager` split)
 
 ### Demos
 - **Main.kt (BrickPit):** Full physics sandbox. Click to spawn balls and rigidbody bricks with angular physics, friction, and CCD collision. Drag entities with mouse. Collision sounds on impact.
-- **AVTest.kt:** Multimedia demo. Clickable cat/dog with sounds, FPS counter, title text, pulsing circle, styled play button with camera shake, dynamic window resizing and repositioning.
+- **AVTest.kt:** Multimedia demo. Clickable cat/dog with sounds, FPS counter, title text, pulsing circle, styled play button with camera shake, dynamic window resizing and repositioning with easing curves.
 - **DragTest.kt:** UI interaction demo. Draggable panel with cat texture, draggable circle with hover effects, volume slider, text input field with cursor navigation.
 - **TriangleTest.kt:** Triangle rendering and collision. Static colored triangles, draggable triangle, pulsing triangle, continuously rotating triangle.
 - **FirstGame.kt (Asteroids):** Playable Asteroids clone. Ship with thrust/rotation/shooting, asteroids with size-based splitting, screen wrapping, score tracking.
-- **MultiWindowTest.kt:** Two independent windows running simultaneously via `WindowManager`.
+- **MultiWindowTest.kt:** Two independent windows running simultaneously via `WindowManager` — rotating triangle in one, pulsing circle in the other.
 
 ## Building
 
@@ -66,7 +67,7 @@ org.soyuz
 ├── engine
 │   ├── audio          — AudioSystem, AudioClip, AudioSource
 │   ├── collision      — Collider, CircleCollider, RectangleCollider, TriangleCollider, CollisionSystem, Contact
-│   ├── core           — Application, Engine, RuntimeEngine (timers, update, render)
+│   ├── core           — Application (object), Engine, RuntimeEngine (timers, update, render)
 │   ├── entity         — GameEntity, DefaultGameEntity (observable properties)
 │   ├── events         — EventBus, RuntimeEventBus, CollisionEvent, CollisionEventType
 │   ├── physics
@@ -79,10 +80,10 @@ org.soyuz
 │   ├── render         — Shader, Mesh, Camera, Painter, SolidColor, DynamicPainter, RenderSystem, RuntimeRenderSystem
 │   ├── scene          — Scene, RuntimeScene
 │   └── ui             — Interactive, InteractiveDecorator, UISystem, UIState, UI (factory), TextInputEntity
-├── input              — Input (object), KeyListener, MouseListener
+├── input              — Input (per-window instance), KeyListener, MouseListener (window-handle-keyed)
 ├── util
 │   └── math           — Vector2D, Transform, Polynomial, Easing, MathUtil
-├── util               — Aabb2D, ShapeQueries, Assets, Color, Debug, Dynamic
+├── util               — Aabb2D, ShapeQueries, Assets (context-aware), Color, Debug, Dynamic
 └── windowing          — Window, WindowManager, WindowRuntime
 ```
 
@@ -93,15 +94,17 @@ org.soyuz
 - **Bodies own their forces.** No global force registry. Bodies hold a list of `ForceField` instances. `EntityAwareForceField` for multi-body interactions.
 - **Physics is multi-phase.** Force accumulation → permissive joint forces → CCD position update → discrete collision detection → impulse resolution + friction + positional correction → strict joint solving (5 iterations) → velocity finalization → entity-aware field position updates.
 - **No ECS.** Entities are objects with direct references to their data. Same `GameEntity` type used for physics objects and UI elements.
-- **Application owns the platform.** `Application` manages GLFW init/terminate and audio lifecycle. `WindowManager` orchestrates multiple windows. `RuntimeEngine` knows nothing about GLFW.
-- **Input is a singleton.** `object Input` wraps `KeyListener` and `MouseListener`. No injection needed.
+- **Application owns the platform.** `Application` object manages GLFW init/terminate and audio lifecycle. `WindowManager` orchestrates multiple windows. `RuntimeEngine` knows nothing about GLFW.
+- **Engine-scoped dependencies.** `UISystem`, `UI`, and `Input` are per-engine instances, not singletons. Each window has fully isolated UI state.
+- **Per-window input.** `KeyListener` and `MouseListener` key state by window handle. `Input` wraps them for a clean per-engine API.
 - **Mass-zero means infinite mass.** No separate `isStatic` boolean. `mass = 0.0` → immovable.
 - **CCD by default.** Circle bodies use swept collision against AABBs with substepping. No tunneling.
 - **Painter for rendering.** Entities carry their own appearance via the `Painter` interface. `SolidColor`, `ImagePainter`, and `TextPainter` implementations. `DynamicPainter` for per-frame updates.
-- **Interactive decorator chain.** UI behavior composed via chained modifiers: `.clickable { }.hoverable { }.draggable { }`. No subclass explosion.
+- **Interactive decorator chain.** UI behavior composed via chained modifiers: `.clickable { }.hoverable { }.draggable { }`. `Interactive { }` shorthand for starting chains. No subclass explosion.
 - **Observable entities.** Properties like `position`, `rotation`, and `shape` fire change listeners. Labels follow panels, sliders update readouts — no per-frame polling.
 - **Polynomials for curves.** `Polynomial` class with full arithmetic and calculus powers easing functions, force curves, and animation blending.
-- **Assets cached centrally.** `Assets` object provides lazy-loaded, cached access to shaders, textures, fonts, and audio. Convention-based paths.
+- **Context-aware Assets.** `Assets` caches shaders, textures, and fonts keyed by OpenGL context handle. Works transparently for single and multi-window.
+- **Deferred timer registration.** Timers added during callbacks go to `pendingTimers`, merged after iteration. Prevents concurrent modification.
 - **Cross-platform natives.** Gradle build auto-detects OS and architecture for LWJGL native libraries.
 
 ## Performance

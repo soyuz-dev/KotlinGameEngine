@@ -75,8 +75,7 @@ fun main() {
     dragTri.shape = TriangleShape.equilateral(dragSize)
     dragTri.painter = SolidColor(Color(255, 200, 50, 220))
     dragTri.collider = TriangleCollider(dragTri.shape as TriangleShape)
-    dragTri.interactive = Interactive
-        .empty { dragTri.collider!!.containsPoint(it, dragTri.transform) }
+    dragTri.interactive = Interactive { dragTri.collider!!.containsPoint(it, dragTri.transform) }
         .draggable(onDrag = { _, pos -> dragTri.position = pos })
     scene.addEntity(dragTri)
 

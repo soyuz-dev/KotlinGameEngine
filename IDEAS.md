@@ -12,7 +12,8 @@ Random brain dumps worth revisiting later. No deadlines, no promises.
 - Render A inside B, clip to A's rotated rect via stencil buffer
 - Custom window chrome (title bar, buttons) rendered as entities inside A
 - Needs: `GLFW_DECORATED`, `GLFW_TRANSPARENT_FRAMEBUFFER`, `DwmExtendFrameIntoClientArea`
-- In theory, architecturally supported by `Window`/`WindowRuntime`/`WindowManager` split
+- Architecturally supported by `Window`/`WindowRuntime`/`WindowManager` split
+- Custom chrome buttons call `window.quit()`, `window.minimize()`, etc.
 
 ## Physics
 
@@ -28,12 +29,15 @@ Simple density-based buoyancy. Bodies with `density < fluidDensity` float upward
 ### Weld / fixed joints
 Glue two bodies together at a fixed relative offset. Zero degrees of freedom. Useful for building compound objects from simple shapes.
 
+### Soft body / jelly physics
+Mesh of `PointMass` instances connected by `SpringJoint`s. Deforms on collision. Satisfying squish.
+
 ---
 
 ## Rendering
 
 ### Debug drawing layer
-Toggleable overlay for colliders, contact points, normals, AABBs, velocity vectors. Press a key to show/hide. Critical for physics debugging.
+Toggleable overlay for colliders, contact points, normals, AABBs, velocity vectors. Press F1 to show/hide. Critical for physics debugging.
 
 ### PainterModifier chain
 ```kotlin
@@ -42,10 +46,13 @@ painter = SolidColor(1.0, 0.3, 0.1) + OpacityModifier(0.8) + TintModifier(0.2, 0
 Modifiers applied in order at bind time. Composability without subclass explosion.
 
 ### Particle system
-Lightweight GPU-particle system for trails, sparks, debris on collision. `ParticleEmitter` as a component. Could fire on `CollisionEvent`.
+Lightweight GPU-particle system for trails, sparks, debris on collision. `ParticleEmitter` as a component. Fires on `CollisionEvent`.
 
 ### Render layers / z-ordering
 Entities sorted by layer before drawing. Background, game, foreground, UI. Prevents painter's algorithm issues.
+
+### Sprite sheet / animation
+`AnimatedPainter` that cycles through UV regions of a texture atlas. Frame-based or time-based animation.
 
 ---
 
@@ -93,7 +100,7 @@ Scene save/load. Serialize entity graph, transforms, colliders, physics bodies. 
 FPS, frame time, body count, collision pairs checked, force calculations skipped (via bit-hack counter). Useful for tuning the threshold in `GravityField`.
 
 ### Property bindings
-Formalize the observable entity pattern into a `Binding<T>` system. `label.position bind panel.position + offset`. Animated transitions between values.
+Formalize the observable entity pattern into a `Binding<T>` system. `label.position bind panel.position + offset`. Animated transitions via `Easing`.
 
 ---
 
@@ -106,7 +113,7 @@ Physics step runs on a worker thread while main thread handles GLFW events + ren
 Run without a window for unit testing physics, AI, or server-side simulation. No GLFW dependency.
 
 ### WebAssembly target
-Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
+Kotlin/Wasm + WebGL. Bump in the browser. Long-term fever dream.
 
 ---
 
@@ -116,18 +123,16 @@ Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 - [x] Triangle collider with SAT and barycentric point test
 - [x] Force fields attached to bodies
 - [x] Kinematic body type
-- [x] Input as singleton object
+- [x] Per-window input with window-handle-keyed state
 - [x] Transform with local↔world helpers
 - [x] Shader-based rendering (core profile)
 - [x] CCD with substepping and corner mitigation
 - [x] EventBus with collision events (ENTER/EXIT/STAY)
 - [x] EntityAwareForceField for multi-body interactions
 - [x] n-body gravity with bit-hack exponent optimization
-- [x] Painter interface with SolidColor
-- [x] ImagePainter with STB texture loading
-- [x] TextPainter with STB TrueType font rendering
+- [x] Painter interface with SolidColor, ImagePainter, TextPainter
 - [x] DynamicPainter for per-frame visual updates
-- [x] Assets object for shader/texture/font/audio caching
+- [x] Context-aware Assets caching (per GL context)
 - [x] RodJoint with Baumgarte stabilization
 - [x] RopeJoint (one-way constraint)
 - [x] SpringJoint with damping
@@ -137,21 +142,24 @@ Kotlin/Wasm + WebGL. Bump in the browser. Probably a long-term fever dream.
 - [x] Rigidbody with angular physics, friction, proper clipped-edge contact points
 - [x] Cross-platform build (Windows, Linux, macOS Intel + Apple Silicon)
 - [x] Color utility class
-- [x] UI System with Interactive decorator chain (clickable, hoverable, draggable, scrollable, focusable, doubleClickable)
-- [x] UISystem input router with hover/press/drag/focus/scroll state management
-- [x] UI factory (button, label, slider, textInput convenience functions)
-- [x] Text input field with cursor navigation (left/right, home/end, backspace/delete)
+- [x] UI System with Interactive decorator chain
+- [x] UISystem input router with full state management
+- [x] UI factory (button, label, slider, textInput)
+- [x] Text input field with cursor navigation
 - [x] RuntimeEngine orchestrating UI → Physics → Dynamics → Render
 - [x] RenderSystem abstraction
 - [x] Dynamic interface for per-frame update dispatch
-- [x] Observable entity properties (onPositionChanged, onRotationChanged, onShapeChanged)
-- [x] Camera shake effect via engine.during() with NDC-correct offsets
+- [x] Observable entity properties (position, rotation, shape)
+- [x] Camera shake effect with NDC-correct offsets
 - [x] Engine timer system (everyFrame, forEvery, after, during)
-- [x] GLFW fully encapsulated — `Window` class, `WindowManager`, `Application`
-- [x] Multi-window support via `WindowManager` with context switching
+- [x] GLFW fully encapsulated — Window, WindowManager, Application
+- [x] Multi-window support via WindowManager with context switching
 - [x] Polynomial class with arithmetic and calculus
 - [x] Easing library (30+ curves, polynomial-backed)
 - [x] VelocityForceField with polynomial-based drag/thrust curves
 - [x] TriangleShape with equilateral and isosceles factories
 - [x] Camera with offset support for screen effects
 - [x] Playable Asteroids demo game
+- [x] Engine-scoped dependencies (UISystem, UI, Input per-engine)
+- [x] Deferred timer registration (pendingTimers pattern)
+- [x] Interactive { } invoke shorthand
