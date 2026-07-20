@@ -12,7 +12,7 @@ import org.soyuz.engine.audio.AudioSystem
 import org.soyuz.util.Assets
 import org.soyuz.windowing.WindowManager
 
-class Application {
+object Application {
     val windows = WindowManager()
     private var running = false
     private var closed = false

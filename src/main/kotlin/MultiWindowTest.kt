@@ -21,8 +21,6 @@ import org.soyuz.util.math.Vector2D
 import kotlin.math.sin
 
 fun main() {
-    val application = Application()
-
     // --- Window 1: Rotating Triangle ---
     val window1 = Window("Bump - Rotating Triangle", 600, 500)
     window1.x = 100; window1.y = 100
@@ -30,7 +28,7 @@ fun main() {
     val camera1 = Camera()
     val engine1 = RuntimeEngine(window1, null, camera1)
 
-    application.windows.add(window1, engine1) {
+    Application.windows.add(window1, engine1) {
         engine1.shader = Assets.shader("default")
         engine1.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
     }
@@ -65,7 +63,7 @@ fun main() {
     val camera2 = Camera()
     val engine2 = RuntimeEngine(window2, null, camera2)
 
-    application.windows.add(window2, engine2) {
+    Application.windows.add(window2, engine2) {
         engine2.shader = Assets.shader("default")
         engine2.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
     }
@@ -93,5 +91,5 @@ fun main() {
 
     engine2.loadScene(scene2)
 
-    application.run()
+    Application.run()
 }

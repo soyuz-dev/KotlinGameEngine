@@ -24,7 +24,6 @@ import kotlin.math.cos
 fun main() {
     val width = 800
     val height = 600
-    val application = Application()
     val window = Window(
         title = "Bump - Triangle Test",
         initialWidth = width,
@@ -36,7 +35,7 @@ fun main() {
         physicsSystem = null,
         camera = camera
     )
-    application.windows.add(window, engine) {
+    Application.windows.add(window, engine) {
         engine.shader = Assets.shader("default")
         engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
     }
@@ -131,5 +130,5 @@ fun main() {
     }
 
     engine.loadScene(scene)
-    application.run()
+    Application.run()
 }

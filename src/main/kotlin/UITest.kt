@@ -27,8 +27,6 @@ import org.soyuz.util.math.Vector2D
 fun main() {
     val width = 800
     val height = 600
-
-    val application = Application()
     val camera = Camera()
     val window = Window(
         title = "Bump - Dragging Test",
@@ -40,7 +38,7 @@ fun main() {
         physicsSystem = null,
         camera = camera
     )
-    application.windows.add(window, engine) {
+    Application.windows.add(window, engine) {
         engine.shader = Assets.shader("default")
         engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
     }
@@ -114,5 +112,5 @@ fun main() {
     }
 
     engine.loadScene(scene)
-    application.run()
+    Application.run()
 }

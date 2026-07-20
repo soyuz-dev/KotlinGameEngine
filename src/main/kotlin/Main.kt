@@ -30,8 +30,6 @@ import kotlin.math.roundToInt
 fun main() {
     val width = 800
     val height = 800
-
-    val application = Application()
     val camera = Camera()
     val collisionSystem = RuntimeCollisionSystem()
     val eventBus = RuntimeEventBus()
@@ -48,7 +46,7 @@ fun main() {
         physicsSystem = physicsSystem,
         camera = camera
     )
-    application.windows.add(window, engine) {
+    Application.windows.add(window, engine) {
         engine.shader = Assets.shader("default")
         engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
     }
@@ -151,5 +149,5 @@ fun main() {
     }
 
     engine.loadScene(scene)
-    application.run()
+    Application.run()
 }

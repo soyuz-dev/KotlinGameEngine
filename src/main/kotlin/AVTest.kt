@@ -30,7 +30,6 @@ fun main() {
     val height = 600
 
     // --- Systems & Engine Setup --//
-    val application = Application()
     val camera = Camera()
     val window = Window(
         title = "Bump - AV Test v4",
@@ -43,7 +42,7 @@ fun main() {
         camera = camera
     )
 
-    application.windows.add(window, engine) {
+    Application.windows.add(window, engine) {
         engine.shader = Assets.shader("default")
         engine.renderSystem = RuntimeRenderSystem(Mesh.quad(), Mesh.circle(32))
     }
@@ -175,5 +174,5 @@ fun main() {
     window.x = 0
     window.y = 0
 
-    application.run()
+    Application.run()
 }
