@@ -25,6 +25,7 @@ import org.soyuz.util.math.Transform
 import org.soyuz.util.math.Vector2D
 
 fun main() {
+    Application.init()
     val width = 800
     val height = 600
     val camera = Camera()

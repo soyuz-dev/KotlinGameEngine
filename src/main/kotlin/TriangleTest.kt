@@ -22,6 +22,7 @@ import kotlin.math.sin
 import kotlin.math.cos
 
 fun main() {
+    Application.init()
     val width = 800
     val height = 600
     val window = Window(

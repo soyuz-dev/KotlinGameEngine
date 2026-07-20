@@ -31,6 +31,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 fun main() {
+    Application.init()
     val width = 800
     val height = 600
     val camera = Camera()

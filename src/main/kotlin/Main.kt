@@ -28,6 +28,7 @@ import org.soyuz.util.math.Vector2D
 import kotlin.math.roundToInt
 
 fun main() {
+    Application.init()
     val width = 800
     val height = 800
     val camera = Camera()

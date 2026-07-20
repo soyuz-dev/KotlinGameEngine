@@ -17,11 +17,15 @@ object Application {
     private var running = false
     private var closed = false
 
-    init {
+    private var initialized = false
+
+    fun init() {
+        if (initialized) return
         if (!glfwInit()) throw IllegalStateException("Unable to initialize GLFW")
         configureWindowHints()
         AudioSystem.init()
         windows.onBeforeLastWindowClosed { Assets.cleanup() }
+        initialized = true
     }
 
     fun run() {

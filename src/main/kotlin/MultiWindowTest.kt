@@ -21,6 +21,7 @@ import org.soyuz.util.math.Vector2D
 import kotlin.math.sin
 
 fun main() {
+    Application.init()
     // --- Window 1: Rotating Triangle ---
     val window1 = Window("Bump - Rotating Triangle", 600, 500)
     window1.x = 100; window1.y = 100

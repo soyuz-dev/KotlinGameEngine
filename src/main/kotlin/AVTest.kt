@@ -20,6 +20,7 @@ import org.soyuz.engine.ui.UI
 import org.soyuz.input.KeyListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
+import org.soyuz.util.math.Easing
 import org.soyuz.util.math.Transform
 import org.soyuz.util.math.Vector2D
 import kotlin.math.roundToInt
@@ -28,6 +29,7 @@ import kotlin.math.sin
 fun main() {
     val width = 800
     val height = 600
+    Application.init()
 
     // --- Systems & Engine Setup --//
     val camera = Camera()
@@ -165,7 +167,9 @@ fun main() {
             fpsPainter.texture?.height?.toDouble() ?: 30.0
         )
 
-        val pulse = sin(time * 3.0)
+        val raw = time % 2.0
+        val t = if (raw < 1.0) raw else 2.0 - raw
+        val pulse = Easing.expoInOut(t)
         circle.shape = CircleShape(60.0 * pulse + 80.0)
         window.width = (600 + 200 * pulse).roundToInt()
         window.y = (60 + 20 * pulse).roundToInt()
