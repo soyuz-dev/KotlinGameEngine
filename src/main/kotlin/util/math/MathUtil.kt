@@ -44,7 +44,7 @@ object MathUtil {
         val s = sin(rotation)
         return floatArrayOf(
             2f / width * c, 2f / width * s, 0f, 0f,
-            -2f / height * s, -2f / height * c, 0f, 0f,  // wait, need to think about this
+            -2f / height * s, -2f / height * c, 0f, 0f, 
             0f, 0f, -1f, 0f,
             -1f + offsetX, 1f + offsetY, 0f, 1f
         )

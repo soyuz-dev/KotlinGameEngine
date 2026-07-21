@@ -29,6 +29,19 @@ data class Transform(
     fun goto(position: Vector2D): Transform =
         copy(position = position)
 
+
+    fun toMatrix(): Matrix4f {
+        return Matrix4f.translateMatrix(
+            position.x.toFloat(),
+            position.y.toFloat()
+        )
+            .rotate(rotationRadians.toFloat())
+            .scale(
+                scale.x.toFloat(),
+                scale.y.toFloat()
+            )
+    }
+
     companion object {
         fun localToWorld(local: Vector2D, transform: Transform): Vector2D {
             val scaled = Vector2D(local.x * transform.scale.x, local.y * transform.scale.y)

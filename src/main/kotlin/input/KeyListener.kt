@@ -9,7 +9,7 @@ object KeyListener {
     private val keyDownLast = mutableMapOf<Long, BooleanArray>()
 
     fun keyCallback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-        val keys = keyDown.getOrPut(window) { BooleanArray(350) }
+        val keys = keyDown.getOrPut(window) { BooleanArray(511) }
         when (action) {
             GLFW_PRESS -> keys[key] = true
             GLFW_RELEASE -> keys[key] = false
@@ -17,8 +17,8 @@ object KeyListener {
     }
 
     fun endFrame(window : Long) {
-        val keys = keyDown.getOrPut(window) { BooleanArray(350) }
-        val lastKeys = keyDownLast.getOrPut(window) { BooleanArray(350) }
+        val keys = keyDown.getOrPut(window) { BooleanArray(511) }
+        val lastKeys = keyDownLast.getOrPut(window) { BooleanArray(511) }
         for (i in keys.indices) {
             lastKeys[i] = keys[i]
         }

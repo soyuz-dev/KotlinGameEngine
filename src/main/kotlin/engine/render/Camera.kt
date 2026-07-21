@@ -1,31 +1,59 @@
 package org.soyuz.engine.render
 
-import org.soyuz.util.math.MathUtil
+import org.soyuz.util.math.Matrix4f
 
 class Camera {
-    private val projection = FloatArray(16)
-    private var currentWidth = 0f
-    private var currentHeight = 0f
-    private var offsetX = 0f
-    private var offsetY = 0f
+
+    private var width = 0f
+    private var height = 0f
+
+    private var positionX = 0f
+    private var positionY = 0f
+
+    private var zoom = 1f
+
+    private var projection = Matrix4f()
+    private var viewProjection = Matrix4f()
 
     fun setOrtho(width: Float, height: Float) {
-        currentWidth = width
-        currentHeight = height
-        rebuildProjection()
+        this.width = width
+        this.height = height
+        rebuild()
     }
 
-    fun setOffset(x: Float, y: Float) {
-        offsetX = x / (currentWidth / 2f)
-        offsetY = y / (currentHeight / 2f)
-        rebuildProjection()
+    fun setPosition(x: Float, y: Float) {
+        positionX = x
+        positionY = y
+        rebuild()
     }
 
-    private fun rebuildProjection() {
-        MathUtil.orthoMatrix(currentWidth, currentHeight, offsetX, offsetY).copyInto(projection)
+    fun setScale(scale: Float) {
+        zoom = scale
+        rebuild()
     }
 
+    fun zoom(factor: Float) {
+        zoom *= factor
+        rebuild()
+    }
 
+    private fun rebuild() {
+        projection = Matrix4f.ortho(
+            width / zoom,
+            height / zoom
+        )
 
-    fun getProjection(): FloatArray = projection
+        val view =
+            Matrix4f.identity()
+                .translate(
+                    positionX - width / 2f,
+                    positionY - height / 2f
+                )
+
+        viewProjection = projection * view
+    }
+
+    fun getProjection(): FloatArray {
+        return viewProjection.toFloatArray()
+    }
 }

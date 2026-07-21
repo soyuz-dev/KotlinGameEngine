@@ -16,7 +16,6 @@ import org.soyuz.engine.scene.RuntimeScene
 import org.soyuz.engine.shape.CircleShape
 import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.ui.Interactive
-import org.soyuz.engine.ui.UI
 import org.soyuz.input.KeyListener
 import org.soyuz.util.Assets
 import org.soyuz.util.Color
@@ -24,7 +23,6 @@ import org.soyuz.util.math.Easing
 import org.soyuz.util.math.Transform
 import org.soyuz.util.math.Vector2D
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 fun main() {
     val width = 800
@@ -43,6 +41,10 @@ fun main() {
         physicsSystem = null,
         camera = camera
     )
+
+
+    window.x = 0
+    window.y = 0
 
     Application.windows.add(window, engine) {
         engine.shader = Assets.shader("default")
@@ -106,11 +108,11 @@ fun main() {
             val intensity = (1.0 - progress) * 20.0
             val ox = ((Math.random() - 0.5) * intensity).toFloat()
             val oy = ((Math.random() - 0.5) * intensity * 0.2).toFloat()
-            camera.setOffset(ox, oy)
+            camera.setPosition(ox, oy)
         }
 
         engine.after(500.0) {
-            camera.setOffset(0f, 0f)
+            camera.setPosition(0f, 0f)
         }
     }
     scene.addEntity(playBtn)
@@ -125,7 +127,6 @@ fun main() {
         AudioSource().play(Assets.audio("meow"))
     }
 
-    // Replace the manual `while` loop using `during` running infinitely
     var lastTime = glfwGetTime()
     var time = 0f
 
@@ -133,7 +134,7 @@ fun main() {
     var fpsAccumulator = 0f
     var fpsFrameCount = 0
 
-    engine.everyFrame {
+    engine {
         val currentTime = glfwGetTime()
         val dt = (currentTime - lastTime).toFloat()
         lastTime = currentTime
@@ -169,14 +170,12 @@ fun main() {
 
         val raw = time % 2.0
         val t = if (raw < 1.0) raw else 2.0 - raw
-        val pulse = Easing.expoInOut(t)
+        val pulse = Easing.quadInOut(t)
         circle.shape = CircleShape(60.0 * pulse + 80.0)
         window.width = (600 + 200 * pulse).roundToInt()
         window.y = (60 + 20 * pulse).roundToInt()
     }
 
-    window.x = 0
-    window.y = 0
 
     Application.run()
 }
