@@ -2,8 +2,7 @@ package org.soyuz
 
 import org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT
 import org.soyuz.engine.audio.AudioSource
-import org.soyuz.engine.collision.CircleCollider
-import org.soyuz.engine.collision.RectangleCollider
+import org.soyuz.engine.collision.Collider
 import org.soyuz.engine.collision.RuntimeCollisionSystem
 import org.soyuz.engine.core.Application
 import org.soyuz.engine.core.RuntimeEngine
@@ -75,10 +74,9 @@ fun main() {
         ball.position = Vector2D(x, y)
         ball.shape = CircleShape(radius)
         ball.painter = SolidColor(Math.random(), Math.random(), Math.random(), 1.0)
-        val body = PointMass(mass = mass, restitution = restitution)
-        body.addField(gravity)
+        val body = PointMass(mass = mass, restitution = restitution) with gravity
         body.velocity = Vector2D(vx, vy)
-        val collider = CircleCollider(CircleShape(radius))
+        val collider = Collider(CircleShape(radius))
         ball.interactive = Interactive.draggable(
             containsPoint = {collider.containsPoint(it, ball.transform)},
             onDrag = { _, currentPos ->  ball.position = currentPos; body.velocity = Vector2D.ZERO }
@@ -94,11 +92,12 @@ fun main() {
         brick.position = Vector2D(x, y)
         brick.shape = RectangleShape(w, h)
         brick.painter = SolidColor(0.8, 0.4, 0.1, 1.0)
-        val body = RigidBody(mass = mass, restitution = restitution, friction = 0.4, width = w, height = h)
-        body.addField(gravity)
+        val body = (RigidBody(mass = mass, restitution = restitution, friction = 0.4, width = w, height = h)) with
+                gravity
+
         body.velocity = Vector2D(vx, vy)
         body.angularVelocity = angVel
-        val collider = RectangleCollider(RectangleShape(w, h))
+        val collider = Collider(RectangleShape(w, h))
         brick.interactive = Interactive.draggable(
             containsPoint = {collider.containsPoint(it, brick.transform)},
             onDrag = { _, currentPos ->  brick.position = currentPos; body.velocity = Vector2D.ZERO }
@@ -114,7 +113,7 @@ fun main() {
         wall.shape = RectangleShape(w, h)
         wall.painter = SolidColor(0.2, 0.2, 0.3, 1.0)
         val wallBody = PointMass(mass = 0.0, restitution = 1.0)
-        val wallCollider = RectangleCollider(RectangleShape(w, h))
+        val wallCollider = Collider(RectangleShape(w, h))
         physicsSystem.registerBody(id, wallBody)
         collisionSystem.registerCollider(id, wallCollider)
         scene.addEntity(wall)

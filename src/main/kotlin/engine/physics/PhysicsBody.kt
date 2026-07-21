@@ -14,3 +14,8 @@ interface PhysicsBody {
     fun addField(field: ForceField) = Unit
     fun removeField(field: ForceField) = Unit
 }
+
+infix fun <T : PhysicsBody> T.with(field: ForceField): T {
+    this.addField(field)
+    return this
+}
