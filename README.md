@@ -6,6 +6,10 @@ A 2D game engine built in Kotlin with LWJGL. Designed for a DSL-driven workflow 
 
 Feature-complete for 2D games. The engine runs, the commit messages are unhinged, the DSL is next.
 
+## Quickstart
+
+See [GUIDE.md](GUIDE.md) for a quickstart to using Bump.
+
 ### What works
 - **Application & Windowing:** `Application` object owns GLFW lifecycle and global config. `Window` is a pure GLFW wrapper with mutable properties and recursion-safe callbacks. `WindowManager` orchestrates multiple windows with context switching and per-window input routing.
 - **Engine:** `RuntimeEngine` scopes `UISystem`, `UI` factory, `Input`, timers (`everyFrame`, `forEvery`, `after`, `during`), and the `Dynamic` update loop. No GLFW knowledge. Fixed-timestep physics.

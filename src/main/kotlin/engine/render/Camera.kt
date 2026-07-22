@@ -27,7 +27,7 @@ class Camera {
         rebuild()
     }
 
-    fun setScale(scale: Float) {
+    fun setZoom(scale: Float) {
         zoom = scale
         rebuild()
     }
