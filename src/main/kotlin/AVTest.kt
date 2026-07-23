@@ -22,6 +22,7 @@ import org.soyuz.util.Color
 import org.soyuz.util.math.Easing
 import org.soyuz.util.math.Transform
 import org.soyuz.util.math.Vector2D
+import org.soyuz.windowing.TransparentWindow
 import kotlin.math.roundToInt
 
 fun main() {
@@ -31,7 +32,7 @@ fun main() {
 
     // --- Systems & Engine Setup --//
     val camera = Camera()
-    val window = Window(
+    val window = TransparentWindow(
         title = "Bump - AV Test v4",
         initialWidth = width,
         initialHeight = height
@@ -172,8 +173,6 @@ fun main() {
         val t = if (raw < 1.0) raw else 2.0 - raw
         val pulse = Easing.quadInOut(t)
         circle.shape = CircleShape(60.0 * pulse + 80.0)
-        window.width = (600 + 200 * pulse).roundToInt()
-        window.y = (60 + 20 * pulse).roundToInt()
     }
 
 

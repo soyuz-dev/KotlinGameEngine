@@ -37,6 +37,8 @@ class Camera {
         rebuild()
     }
 
+
+
     private fun rebuild() {
         projection = Matrix4f.ortho(
             width / zoom,

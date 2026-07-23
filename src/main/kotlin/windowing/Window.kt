@@ -6,7 +6,7 @@ import org.lwjgl.system.MemoryUtil
 import org.soyuz.input.KeyListener
 import org.soyuz.input.MouseListener
 
-class Window(
+open class Window(
     title: String = "Bump",
     initialWidth: Int = 800,
     initialHeight: Int = 600,
@@ -44,9 +44,33 @@ class Window(
         GLFW.glfwSetWindowTitle(handle, value)
         field = value
     }
+    private val resizeListeners = mutableListOf<(Int, Int) -> Unit>()
+    fun onResize(callback: (width: Int, height: Int) -> Unit) {
+        resizeListeners.add(callback)
+        callback(width, height) // fire immediately with current size
+    }
     private var inCallback = false
 
+    var clearColor = floatArrayOf(
+        0.1f,
+        0.1f,
+        0.15f,
+        1f
+    )
+
+    fun clear() {
+        GL11.glClearColor(
+            clearColor[0],
+            clearColor[1],
+            clearColor[2],
+            clearColor[3]
+        )
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+    }
+
     init {
+        configureHints()
+
         handle = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, shareContext)
         if (handle == MemoryUtil.NULL) throw RuntimeException("Failed to create window")
         setupCallbacks()
@@ -61,6 +85,7 @@ class Window(
         GLFW.glfwSetFramebufferSizeCallback(handle) { _, w, h ->
             inCallback = true
             width = w; height = h
+            resizeListeners.forEach { it(w, h) }
             inCallback = false
         }
         GLFW.glfwSetWindowPosCallback(handle) { _, xpos, ypos ->
@@ -114,4 +139,6 @@ class Window(
     fun destroy() {
         GLFW.glfwDestroyWindow(handle)
     }
+
+    protected open fun configureHints() {}
 }

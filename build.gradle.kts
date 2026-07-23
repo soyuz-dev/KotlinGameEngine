@@ -1,5 +1,7 @@
 
 import org.gradle.internal.os.OperatingSystem
+
+
 plugins {
     kotlin("jvm") version "2.3.10"
     application
@@ -35,6 +37,9 @@ dependencies {
     implementation("org.lwjgl:lwjgl-opengl:$lwjglV")
     implementation("org.lwjgl:lwjgl-stb:$lwjglV")
     implementation("org.lwjgl:lwjgl-openal:${lwjglV}")
+
+    implementation("net.java.dev.jna:jna:5.14.0")
+    implementation("net.java.dev.jna:jna-platform:5.14.0")
 
     runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")

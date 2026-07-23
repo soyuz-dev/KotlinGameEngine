@@ -1,8 +1,11 @@
 package org.soyuz.input
 
+import com.sun.jna.platform.win32.User32
+import com.sun.jna.platform.win32.WinDef
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 import org.soyuz.util.math.Vector2D
+import java.awt.MouseInfo
 
 object MouseListener {
     private val positions = mutableMapOf<Long, Vector2D>()
@@ -58,4 +61,9 @@ object MouseListener {
     fun isDragging(window: Long): Boolean = dragging[window] ?: false
     fun getScrollX(window: Long): Float = (scrollX[window] ?: 0.0).toFloat()
     fun getScrollY(window: Long): Float = (scrollY[window] ?: 0.0).toFloat()
+
+    fun getDesktopPos(): Vector2D {
+        val p = MouseInfo.getPointerInfo().location
+        return Vector2D(p.x.toDouble(), p.y.toDouble())
+    }
 }

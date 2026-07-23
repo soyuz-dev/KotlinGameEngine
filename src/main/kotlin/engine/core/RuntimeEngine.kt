@@ -137,7 +137,7 @@ class RuntimeEngine(
     fun renderCurrentContext() {
         if (!running) return
         val scene = currentScene ?: return
-        renderSystem.render(scene, camera, shader)
+        renderSystem.render(window, scene, camera, shader)
     }
 
     override fun run() {

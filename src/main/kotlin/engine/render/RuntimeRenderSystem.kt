@@ -9,6 +9,7 @@ import org.soyuz.engine.shape.RectangleShape
 import org.soyuz.engine.shape.TriangleShape
 import org.soyuz.util.math.MathUtil
 import org.soyuz.util.math.Vector2D
+import org.soyuz.windowing.Window
 
 class RuntimeRenderSystem(
     private val quadMesh: Mesh,
@@ -16,8 +17,13 @@ class RuntimeRenderSystem(
     private val lineVao: Int? = null,
     private val lineVbo: Int? = null
 ) : RenderSystem {
-    override fun render(scene: Scene, camera: Camera, shader: Shader) {
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f)
+    override fun render(
+        window: Window,
+        scene: Scene,
+        camera: Camera,
+        shader: Shader
+    ) {
+        window.clear()
         glClear(GL_COLOR_BUFFER_BIT)
 
         shader.bind()

@@ -10,6 +10,7 @@ object KeyListener {
 
     fun keyCallback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
         val keys = keyDown.getOrPut(window) { BooleanArray(511) }
+        if (key < 0 || key >= keys.size) return
         when (action) {
             GLFW_PRESS -> keys[key] = true
             GLFW_RELEASE -> keys[key] = false
